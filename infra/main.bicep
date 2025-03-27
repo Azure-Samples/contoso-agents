@@ -173,8 +173,6 @@ module logicapp './logicapp.bicep' = {
     serviceBusName: sb.outputs.name
   }
 }
-
-
 module aca './aca.bicep' = {
   name: 'aca'
   scope: rg
@@ -204,6 +202,18 @@ module aca './aca.bicep' = {
   }
 }
 
+module bot 'bot.bicep' = {
+  name: 'bot'
+  scope: rg
+  params: {
+    uniqueId: uniqueId
+    prefix: prefix
+    messagesEndpoint: aca.outputs.skillEndpoint
+    botAppId: botAppId
+    botTenantId: botTenantId
+  }
+}
+
 // These outputs are copied by azd to .azure/<env name>/.env file
 // post provision script will use these values, too
 output AZURE_RESOURCE_GROUP string = rg.name
@@ -214,3 +224,4 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = acrModule.outputs.acrEndpoint
 output AZURE_OPENAI_MODEL string = openAIModel
 output AZURE_OPENAI_ENDPOINT string = openAI.outputs.openAIEndpoint
 output AZURE_OPENAI_API_VERSION string = openAIApiVersion
+output SKILL_ENDPOINT string = aca.outputs.skillEndpoint

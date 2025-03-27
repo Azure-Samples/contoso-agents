@@ -292,3 +292,5 @@ resource skillContainerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
     }
   }
 }
+
+output skillEndpoint string = 'https://${skillContainerApp.properties.configuration.ingress.fqdn}/api/messages' 

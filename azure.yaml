@@ -16,3 +16,13 @@ services:
         docker:
             path: dockerfile
             remoteBuild: true
+hooks:
+    postprovision: 
+        shell: pwsh
+        run: |
+            $botAppId = az env get-value BOT_APP_ID
+            $endpointUrl = az env get-value SKILL_ENDPOINT
+            # Update app registration homeurl property to match containerapp url
+            az ad app update --id $botAppId --set homepageUrl=$endpointUrl            
+        interactive: true
+        continueOnError: false
