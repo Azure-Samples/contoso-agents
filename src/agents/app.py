@@ -1,4 +1,4 @@
-import agents.utils.tracing as tracing
+import utils.tracing as tracing
 import logging
 from cloudevents.http import from_http
 from dapr.ext.fastapi import DaprActor, DaprApp
@@ -6,8 +6,8 @@ from dapr.actor import ActorProxy, ActorId
 from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
 from sk_actor import SKAgentActor, SKAgentActorInterface
-from agents.utils.config import config
-
+from utils.config import config
+from models.order_trigger import OrderTriggerEvent
 
 # Configure logging
 
@@ -67,11 +67,12 @@ async def handle_workflow_input(req: Request):
         # Parse the body as a CloudEvent
         event = from_http(data=body, headers=req.headers)
 
-        data = InputWorkflowEvent.model_validate(event.data)
+        data = OrderTriggerEvent.model_validate(event.data)
         proxy: SKAgentActorInterface = ActorProxy.create(
-            "SKAgentActor", ActorId(data.id), SKAgentActorInterface
+            "SKAgentActor", ActorId(data.order_id), SKAgentActorInterface
         )
-        await proxy.invoke(data.input)
+        # TODO maybe other formats are also fine
+        await proxy.process(data.model_dump_json())
 
         return {"status": "SUCCESS"}
     except Exception as e:

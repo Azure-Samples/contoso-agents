@@ -1,10 +1,10 @@
 {
   "$schema": "https://schemas.botframework.com/schemas/skills/v2.2/skill-manifest.json",
-  "$id": "SKCopilotSkill",
-  "name": "SK Copilot Skill",
+  "$id": "OrderProcessingSkill",
+  "name": "Order Processing Skill",
   "version": "1.0",
   "description": "This is a sample skill using Semantic Kernel",
-  "publisherName": "Microsoft",
+  "publisherName": "Microsoft EMEA AI GBBs",
   "privacyUrl": "https://www.microsoft.com/en-us/privacy/privacystatement",
   "iconUrl": "https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png",
   "endpoints": [
@@ -19,7 +19,7 @@
   "activities": {
     "message": {
       "type": "message",
-      "description": "Invoke Semantic Kernel skill"
+      "description": "Start order processing"
     }
   }
 }

@@ -15,8 +15,8 @@ class PricingAgentPlugin:
             # Get the discount from a hypothetical service using Dapr state
             discount = client.get_state(
                 store_name=config.DATA_STORE_NAME,
-                key=f"discount_{sku}_{quantity}",
-                metadata={'partitionKey': 'your_partition_value'}
+                key=sku,
+                metadata={'partitionKey': 'SKU'}
             ).json()
             if discount:
                 return discount

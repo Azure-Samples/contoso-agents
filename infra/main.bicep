@@ -173,6 +173,8 @@ module logicapp './logicapp.bicep' = {
     serviceBusName: sb.outputs.name
   }
 }
+
+
 module aca './aca.bicep' = {
   name: 'aca'
   scope: rg
@@ -225,3 +227,7 @@ output AZURE_OPENAI_MODEL string = openAIModel
 output AZURE_OPENAI_ENDPOINT string = openAI.outputs.openAIEndpoint
 output AZURE_OPENAI_API_VERSION string = openAIApiVersion
 output SKILL_ENDPOINT string = aca.outputs.skillEndpoint
+output BOT_APP_ID string = botAppId
+output COSMOSDB_ENDPOINT string = cosmos.outputs.cosmosDbEndpoint
+output COSMOSDB_DATABASE string = cosmos.outputs.cosmosDbDatabase
+output COSMOSDB_DATA_CONTAINER string = cosmos.outputs.dataContainerName

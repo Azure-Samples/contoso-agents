@@ -18,8 +18,11 @@ logger.setLevel(logging.DEBUG)  # Ensure logging level is set as required
 # In real-world scenarios, you would want to define this interface in a shared
 # package that both the chat and agent modules can import.
 class SKAgentActorInterface(ActorInterface):
-    @actormethod(name="invoke")
-    async def invoke(self, input_message: str) -> list[dict]: ...
+    @actormethod(name="ask")
+    async def ask(self, input_message: str) -> list[dict]: ...
+
+    @actormethod(name="process")
+    async def process(self, input_message: str) -> list[dict]: ...
 
     @actormethod(name="get_history")
     async def get_history(self) -> dict: ...
@@ -28,7 +31,8 @@ class SKAgentActorInterface(ActorInterface):
 class SKAgentActor(Actor, SKAgentActorInterface):
 
     history: ChatHistory
-    agent: Agent
+    process_agent: Agent
+    chat_agent: Agent
 
     async def _on_activate(self) -> None:
         logger.info(f"Activating actor {self.id}")
@@ -45,16 +49,16 @@ class SKAgentActor(Actor, SKAgentActorInterface):
             )
 
         # NOTE: this is where we inject the agentic team instance
-        self.agent = order_team
-        logger.info(f"Actor {self.id} activated successfully with agent {self.agent}")
+        self.process_agent = order_team
+        logger.info(f"Actor {self.id} activated successfully with agent {self.process_agent}")
 
     async def get_history(self) -> dict:
         logger.debug(f"Getting conversation history for actor {self.id}")
         return self.history.model_dump()
 
-    async def invoke(self, input_message: str) -> list[ChatMessageContent]:
+    async def ask(self, input_message: str) -> list[ChatMessageContent]:
         tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("sk_actor.invoke") as span:
+        with tracer.start_as_current_span("sk_actor.ask") as span:
             span.set_attribute("operation_Id", self.id)
             try:
                 # Option 1: Add as baggage so that it propagates with the context.
@@ -66,7 +70,7 @@ class SKAgentActor(Actor, SKAgentActorInterface):
                 self.history.add_user_message(input_message)
                 results: list[ChatMessageContent] = []
 
-                async for result in self.agent.invoke(history=self.history):
+                async for result in self.chat_agent.invoke(history=self.history):
                     logger.debug(
                         f"Received result from agent for actor {self.id}: {result}"
                     )
@@ -92,7 +96,40 @@ class SKAgentActor(Actor, SKAgentActorInterface):
                 return results
             except Exception as e:
                 logger.error(
-                    f"Error occurred in invoke for actor {self.id}: {e}", exc_info=True
+                    f"Error occurred in ask for actor {self.id}: {e}", exc_info=True
+                )
+                raise
+
+    async def process(self, input_message: str) -> list[ChatMessageContent]:
+        tracer = trace.get_tracer(__name__)
+        with tracer.start_as_current_span("sk_actor.process") as span:
+            span.set_attribute("operation_Id", self.id)
+            try:
+                logger.info(
+                    f"Invoking actor {self.id} with input message: {input_message}"
+                )
+                self.history.add_user_message(input_message)
+                results: list[ChatMessageContent] = []
+
+                async for result in self.process_agent.invoke(history=self.history):
+                    logger.debug(
+                        f"Received result from agent for actor {self.id}: {result}"
+                    )
+                    results.append(result)
+
+                logger.debug(f"Saving conversation state for actor {self.id}")
+
+                # Fix to avoid ChatHistory serialization issue
+                dumped_history = remove_metadata(self.history.model_dump(), "arguments")
+
+                await self._state_manager.set_state("history", dumped_history)
+                await self._state_manager.save_state()
+                logger.info(f"State saved successfully for actor {self.id}")
+
+                return results
+            except Exception as e:
+                logger.error(
+                    f"Error occurred in ask for actor {self.id}: {e}", exc_info=True
                 )
                 raise
 

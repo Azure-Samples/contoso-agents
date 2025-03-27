@@ -1,7 +1,6 @@
 from teams import Application, ApplicationOptions
 from teams.state import TurnState
 from botbuilder.core import MemoryStorage, TurnContext, MessageFactory
-from semantic_kernel.contents import ChatHistory
 from botframework.connector.auth import AuthenticationConfiguration
 from botbuilder.integration.aiohttp import ConfigurationBotFrameworkAuthentication
 from botbuilder.schema import (
@@ -9,13 +8,11 @@ from botbuilder.schema import (
     Activity,
     EndOfConversationCodes,
 )
+from dapr.actor import ActorProxy, ActorId, ActorInterface, actormethod
 
 # Custom classes to handle errors and claims validation
 from auth import AllowedCallersClaimsValidator
 from adapter import AdapterWithErrorHandler
-
-# This is the SK agent that will be used to handle the conversation
-from sk_conversation_agent import agent
 from config import config
 
 # This is required for bot to work as Copilot Skill,
@@ -43,36 +40,40 @@ bot = Application[TurnState](
 @bot.before_turn
 async def setup_chathistory(context: TurnContext, state: TurnState):
 
-    chat_history = state.conversation.get("chat_history") or ChatHistory()
+    # chat_history = state.conversation.get("chat_history") or ChatHistory()
 
-    state.conversation["chat_history"] = chat_history
+    # state.conversation["chat_history"] = chat_history
 
     return state
+
+# NOTE matching interface in src/agents/sk_actor.py
+
+
+class SKAgentActorInterface(ActorInterface):
+    @actormethod(name="ask")
+    async def ask(self, input_message: str) -> list[dict]: ...
+
+    @actormethod(name="process")
+    async def process(self, input_message: str) -> list[dict]: ...
+
+    @actormethod(name="get_history")
+    async def get_history(self) -> dict: ...
 
 
 @bot.activity("message")
 async def on_message(context: TurnContext, state: TurnState):
     user_message = context.activity.text
 
-    # Get the chat_history from the conversation state
-    chat_history: ChatHistory = state.conversation.get("chat_history")
-
-    # Add the new user message
-    chat_history.add_user_message(user_message)
-
-    # Get the response from the semantic kernel agent (v1.22.0 and later)
-    sk_response = await agent.get_response(
-        history=chat_history, user_input=user_message
+    proxy: SKAgentActorInterface = ActorProxy.create(
+        "SKAgentActor", ActorId(context.activity.conversation), SKAgentActorInterface
     )
-
-    # Store the updated chat_history back into conversation state
-    state.conversation["chat_history"] = chat_history
+    response = await proxy.ask(user_message)
 
     # Send the response back to the user
     # NOTE in the context of a Copilot Skill,
     # the response is sent as a Response from /api/messages endpoint
     await context.send_activity(
-        MessageFactory.text(sk_response, input_hint=InputHints.ignoring_input)
+        MessageFactory.text(response, input_hint=InputHints.ignoring_input)
     )
 
     # Skills must send an EndOfConversation activity to indicate the conversation is complete

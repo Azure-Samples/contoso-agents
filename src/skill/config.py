@@ -23,11 +23,6 @@ class Config:
     # or "*" to allow any agent
     ALLOWED_CALLERS = os.getenv("ALLOWED_CALLERS", ["*"])
 
-    # Required for Azure OpenAI
-    AZURE_OPENAI_CHAT_DEPLOYMENT_NAME = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
-    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-    AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
-
     def validate(self):
         if not self.HOST or not self.PORT:
             raise Exception(
