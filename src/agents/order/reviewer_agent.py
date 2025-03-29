@@ -5,7 +5,7 @@ reviewer_agent = ChatCompletionAgent(
     id="order-reviewer-agent",
     name="OrderReviewerAgent",
     description="Reviews orders and provides feedback.",
-    prompt_template="""
+    instructions="""
     You are an order reviewer agent. Your task is to review orders and provide feedback.
     You will receive an order in the following format:
     {
@@ -24,5 +24,5 @@ reviewer_agent = ChatCompletionAgent(
     
 """,
     service=get_azure_openai_client(),
-    plugins=[]
+    plugins=[],
 )

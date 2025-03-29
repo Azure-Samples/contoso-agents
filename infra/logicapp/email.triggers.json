@@ -1,0 +1,39 @@
+{
+  "When_a_new_email_arrives_(V3)": {
+    "splitOn": "@triggerBody()?['value']",
+    "type": "ApiConnectionNotification",
+    "inputs": {
+      "host": {
+        "connection": {
+          "name": "@parameters('$connections')['office365']['connectionId']"
+        }
+      },
+      "fetch": {
+        "pathTemplate": {
+          "template": "/v3/Mail/OnNewEmail"
+        },
+        "method": "get",
+        "queries": {
+          "importance": "Any",
+          "fetchOnlyWithAttachment": true,
+          "includeAttachments": true,
+          "folderPath": "Inbox"
+        }
+      },
+      "subscribe": {
+        "body": {
+          "NotificationUrl": "@listCallbackUrl()"
+        },
+        "pathTemplate": {
+          "template": "/MailSubscriptionPoke/$subscriptions"
+        },
+        "method": "post",
+        "queries": {
+          "importance": "Any",
+          "fetchOnlyWithAttachment": true,
+          "folderPath": "Inbox"
+        }
+      }
+    }
+  }
+}

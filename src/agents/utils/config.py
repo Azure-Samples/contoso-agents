@@ -8,8 +8,7 @@ from semantic_kernel import Kernel
 load_dotenv(override=True)
 
 token_provider = get_bearer_token_provider(
-    DefaultAzureCredential(),
-    "https://cognitiveservices.azure.com/.default"
+    DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
 )
 
 
@@ -20,12 +19,13 @@ class Config:
     DATA_STORE_NAME = os.getenv("DATA_STORE_NAME", "data")
 
     def validate(self):
-        if not self.PUBSUB_NAME:
-            raise ValueError("PUBSUB_NAME is not set in the environment variables.")
-        if not self.TOPIC_NAME:
-            raise ValueError("TOPIC_NAME is not set in the environment variables.")
-        if not self.DATA_STORE_NAME:
-            raise ValueError("DATA_STORE_NAME is not set in the environment variables.")
+        # if not self.PUBSUB_NAME:
+        #     raise ValueError("PUBSUB_NAME is not set in the environment variables.")
+        # if not self.TOPIC_NAME:
+        #     raise ValueError("TOPIC_NAME is not set in the environment variables.")
+        # if not self.DATA_STORE_NAME:
+        #     raise ValueError("DATA_STORE_NAME is not set in the environment variables.")
+        pass
 
 
 config = Config()
@@ -36,7 +36,7 @@ def get_azure_openai_client():
     """
     Returns an instance of AzureChatCompletion configured with the necessary credentials.
     """
-    return AzureChatCompletion(az_token_provider=token_provider)
+    return AzureChatCompletion(ad_token_provider=token_provider)
 
 
 def create_kernel() -> Kernel:

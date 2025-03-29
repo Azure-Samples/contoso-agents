@@ -160,6 +160,15 @@ module sb 'br/public:avm/res/service-bus/namespace:0.11.2' = {
   }
 }
 
+module fr 'formrecognizer.bicep' = {
+  name: 'fr'
+  scope: rg
+  params: {
+    uniqueId: uniqueId
+    prefix: prefix
+    userAssignedIdentityResourceId: uami.outputs.identityId
+  }
+}
 
 module logicapp './logicapp.bicep' = {
   name: 'logic-app'
@@ -171,6 +180,10 @@ module logicapp './logicapp.bicep' = {
     userAssignedIdentityResourceId: uami.outputs.identityId
     logAnalyticsWorkspaceId: appin.outputs.logAnalyticsWorkspaceId
     serviceBusName: sb.outputs.name
+    azureOpenAIName: openAIName
+    azureOpenAIKey: openAI.outputs.openAIKey
+    formRecognizerEndpoint: fr.outputs.formRecognizerEndpoint
+    formRecognizerKey: fr.outputs.formRecognizerKey    
   }
 }
 
@@ -223,7 +236,7 @@ output APPLICATIONINSIGHTS_CONNECTIONSTRING string = appin.outputs.applicationIn
 output AZURE_TENANT_ID string = subscription().tenantId
 output AZURE_USER_ASSIGNED_IDENTITY_ID string = uami.outputs.identityId
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = acrModule.outputs.acrEndpoint
-output AZURE_OPENAI_MODEL string = openAIModel
+output AZURE_OPENAI_CHAT_DEPLOYMENT_NAME string = openAIModel
 output AZURE_OPENAI_ENDPOINT string = openAI.outputs.openAIEndpoint
 output AZURE_OPENAI_API_VERSION string = openAIApiVersion
 output SKILL_ENDPOINT string = aca.outputs.skillEndpoint

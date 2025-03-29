@@ -1,3 +1,4 @@
+from abc import ABC
 import logging
 from typing import TYPE_CHECKING
 
@@ -13,15 +14,14 @@ if TYPE_CHECKING:
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class FeedbackStrategy(KernelBaseModel):
+class FeedbackStrategy(KernelBaseModel, ABC):
     """A strategy for determining when a Planned Team should terminate, and provide feedback to reiterate the plan if needed."""
 
     kernel: Kernel
 
     async def provide_feedback(
         self, history: list["ChatMessageContent"]
-    ) -> tuple[bool, str]:
-        raise NotImplementedError("should_terminate not implemented")
+    ) -> tuple[bool, str]: ...
 
 
 class FeedbackResponse(KernelBaseModel):
@@ -41,7 +41,6 @@ class DefaultFeedbackStrategy(FeedbackStrategy):
 class KernelFunctionFeedbackStrategy(FeedbackStrategy):
     """A strategy for determining when a Planned Team should terminate, and provide feedback to reiterate the plan if needed."""
 
-    kernel: Kernel
     function: KernelFunction
 
     async def provide_feedback(

@@ -1,0 +1,91 @@
+{
+  "For_each": {
+    "foreach": "@triggerBody()?['Attachments']",
+    "actions": {
+      "Analyze_Document_for_Prebuilt_or_Custom_models_(v4.x_API)": {
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['formrecognizer']['connectionId']"
+            }
+          },
+          "method": "post",
+          "body": "@base64ToBinary(items('For_each')?['ContentBytes'])",
+          "path": "/connectorinternaldocumentintelligence/documentModels/@{encodeURIComponent('prebuilt-layout')}:analyze",
+          "queries": {
+            "api-version": "2024-11-30"
+          }
+        }
+      },
+      "Creates_a_completion_for_the_chat_message": {
+        "runAfter": {
+          "Analyze_Document_for_Prebuilt_or_Custom_models_(v4.x_API)": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azureopenai']['connectionId']"
+            }
+          },
+          "method": "post",
+          "body": {
+            "messages": [
+              {
+                "role": "system",
+                "content": "Your objective is to return a JSON format to describe the order requested by the customer.\n\n{\n            \"order\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"item\": {\n                        \"type\": \"string\"\n                    },\n                    \"description\": {\n                        \"type\": \"string\"\n                    },\n                    \"size\": {\n                        \"type\": \"number\"\n                    },\n                    \"color\": {\n                        \"type\": \"string\",\n                        \"format\": \"date-time\"\n                    },\n                    \"quantity\": {\n                        \"type\": \"number\"\n                    },\n                    \"unit_price\": {\n                        \"type\": \"number\",\n                        \"format\": \"currency\"\n                    },\n                    \"amount\": {\n                        \"type\": \"number\",\n                        \"format\": \"currency\"\n                    }\n                }\n            }\n        },\n        \"required\": []\n    }\n}"
+              },
+              {
+                "role": "user",
+                "content": "@string(body('Analyze_Document_for_Prebuilt_or_Custom_models_(v4.x_API)')?['analyzeResult']?['tables'])"
+              }
+            ],
+            "temperature": 1,
+            "top_p": 1,
+            "stream": false,
+            "stop": null,
+            "max_tokens": 4096,
+            "presence_penalty": 0,
+            "frequency_penalty": 0,
+            "n": 1,
+            "seed": 0,
+            "logprobs": false,
+            "response_format": {
+              "type": "text"
+            }
+          },
+          "path": "/2024-02-15-preview/deployments/@{encodeURIComponent('gpt-4o')}/chat/completions",
+          "queries": {
+            "api-version": "2025-01-01-preview"
+          }
+        }
+      },
+      "Send_message": {
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['servicebus']['connectionId']"
+            }
+          },
+          "method": "post",
+          "body": {
+            "ContentData": "@base64(concat('{\n  \"specversion\": \"1.0\",\n  \"type\": \"com.dapr.event.sent\",\n  \"source\": \"approval-logic-app\",\n  \"id\": \"',guid(),'\",\n  \"time\": \"',utcNow(),'\",\n  \"datacontenttype\": \"application/json\",\n  \"data\": ',body('Creates_a_completion_for_the_chat_message')['object'],'\n}\n'))"
+          },
+          "path": "/@{encodeURIComponent(encodeURIComponent('orders'))}/messages",
+          "queries": {
+            "systemProperties": "None"
+          }
+        },
+        "runAfter": {
+          "Creates_a_completion_for_the_chat_message": ["SUCCEEDED"]
+        }
+      }
+    },
+    "runAfter": {},
+    "type": "Foreach"
+  }
+}

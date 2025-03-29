@@ -223,7 +223,7 @@ resource agentsContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
             { name: 'APPLICATIONINSIGHTS_CONNECTIONSTRING', value: applicationInsightsConnectionString }
             { name: 'APPLICATIONINSIGHTS_SERVICE_NAME', value: 'agents' }
             { name: 'AZURE_OPENAI_ENDPOINT', value: openAiEndpoint }
-            { name: 'AZURE_OPENAI_MODEL', value: openAiModel }
+            { name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_NAME', value: openAiModel }
             { name: 'AZURE_OPENAI_API_KEY', value: openAiApiKey }
             { name: 'AZURE_OPENAI_API_VERSION', value: openAiApiVersion }
             { name: 'SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE', value: 'true' }

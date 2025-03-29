@@ -18,7 +18,7 @@ substitution_agent = ChatCompletionAgent(
     id="substitution_agent",
     name="SubstitutionAgent",
     description="",
-    prompt_template="""
+    instructions="""
 You are a substitution agent that helps check the availability of SKUs and suggest substitutes.
 Your task is to check the availability of the given SKUs and suggest substitutes if they are not available.
 You will receive a list of SKUs and you need to check their availability.

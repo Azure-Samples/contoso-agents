@@ -7,7 +7,9 @@ from utils.config import config
 
 class PricingAgentPlugin:
 
-    async def check_discount(self, sku: str, quantity: int) -> Annotated[float, "Discount percentage"]:
+    async def check_discount(
+        self, sku: str, quantity: int
+    ) -> Annotated[float, "Discount percentage"]:
         """
         Check if a discount is applicable based on the SKU and quantity.
         """
@@ -16,14 +18,16 @@ class PricingAgentPlugin:
             discount = client.get_state(
                 store_name=config.DATA_STORE_NAME,
                 key=sku,
-                metadata={'partitionKey': 'SKU'}
+                metadata={"partitionKey": "SKU"},
             ).json()
             if discount:
                 return discount
             else:
                 return 0.0
 
-    async def check_customer_pricelist(self, sku: str, customer_id: str) -> Annotated[float, "Customer price"]:
+    async def check_customer_pricelist(
+        self, sku: str, customer_id: str
+    ) -> Annotated[float, "Customer price"]:
         """
         Check if a customer has a specific price for the SKU.
         """
@@ -36,11 +40,11 @@ pricing_agent = ChatCompletionAgent(
     id="discount_agent",
     name="DiscountAgent",
     description="This agent helps to determine if a discount is applicable based on the order details.",
-    prompt_template="""
+    instructions="""
 You are a pricing agent that checks if a discount is applicable based on the order details.
 You will receive a SKU and quantity, and you need to check if a discount is applicable.
 You can also check if a customer has a specific price for the SKU.
 """,
     service=get_azure_openai_client(),
-    plugins=[PricingAgentPlugin()]
+    plugins=[PricingAgentPlugin()],
 )

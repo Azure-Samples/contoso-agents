@@ -19,3 +19,5 @@ resource cosmosDbAccountRoleAssignment 'Microsoft.Authorization/roleAssignments@
 }
 
 output openAIEndpoint string = openAI.properties.endpoint
+#disable-next-line outputs-should-not-contain-secrets
+output openAIKey string = openAI.listKeys().key1

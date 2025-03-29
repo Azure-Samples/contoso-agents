@@ -21,10 +21,10 @@
       "value": "${AZURE_OPENAI_RG}"
     },
     "openAIModel": {
-      "value": "${AZURE_OPENAI_MODEL=gpt-4o-mini}"
+      "value": "${AZURE_OPENAI_CHAT_DEPLOYMENT_NAME}"
     },
     "openAIApiVersion": {
-      "value": "${AZURE_OPENAI_API_VERSION=2024-02-01}"
+      "value": "${AZURE_OPENAI_API_VERSION}"
     },
     "agentAppExists": {
       "value": "${SERVICE_AGENTS_RESOURCE_EXISTS=false}"
