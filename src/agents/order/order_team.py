@@ -19,7 +19,7 @@ order_team = PlannedTeam(
         validator_agent,
         substitution_agent,
         fulfillment_agent,
-        # reviewer_agent,
+        # reviewer_agent, # NOTE not required with PlannedTeam, which has its own feedback strategy
     ],
     kernel=kernel,
     planning_strategy=DefaultPlanningStrategy(kernel=kernel),
@@ -36,10 +36,10 @@ The feedback MUST be a JSON object with the following structure:
     "feedback": "feedback"
 }
 
-The feedback must be based on the following criteria:
-1. The order processing was successful. Set "should_terminate" to true and leave "feedback" empty.
-2. The order processing failed. Set "should_terminate" to false and provide a feedback message explaining the issue.
-3. The order processing was partially successful. Set "should_terminate" to false and provide a feedback message explaining the issue.
+# FEEDBACK CRITERIA
+- If a delivery schedule was provided, the order processing was successful. Set "should_terminate" to true and leave "feedback" empty.
+- If there were missing information or unresolved issues, the order processing is failed. Set "should_terminate" to true and provide a feedback message explaining the issue.
+- If the processing failed due to temporary failures, or any step can be retried, set "should_terminate" to false and provide a feedback message explaining the issue.
 
 # ORDER TEAM OUTPUT
 {{{{$history}}}}

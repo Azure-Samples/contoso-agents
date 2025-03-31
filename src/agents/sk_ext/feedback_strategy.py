@@ -72,6 +72,9 @@ class KernelFunctionFeedbackStrategy(FeedbackStrategy):
             execution_settings=execution_settings,
         )
         logger.info(f"FeedbackStrategy: {result}")
-        parsed_result = FeedbackResponse.model_validate_json(result.value[0].content)
+        raw_response = (
+            result.value[0].content.strip().replace("```json", "").replace("```", "")
+        )
+        parsed_result = FeedbackResponse.model_validate_json(raw_response)
 
         return parsed_result.should_terminate, parsed_result.feedback

@@ -1,41 +1,38 @@
 {
+  "customerId": "cust001",
+  "customerName": "Acme Corporation",
   "order": [
     {
-      "sku": "289",
+      "sku": "SKU-A100",
       "description": "Sport T shirt",
       "size": "M",
       "color": "Red",
       "quantity": 4,
-      "unit_price": 10.0,
-      "amount": 40.0
+      "unit_price": 10.0
     },
     {
-      "sku": "953",
+      "sku": "SKU-A102",
       "description": "Hoodie",
       "size": "M",
       "color": "Black",
       "quantity": 20,
-      "unit_price": 25.0,
-      "amount": 500.0
+      "unit_price": 25.0
     },
     {
-      "sku": "5930",
+      "sku": "SKU-A103",
       "description": "Hoodie",
       "size": "L",
       "color": "Black",
       "quantity": 30,
-      "unit_price": 25.0,
-      "amount": 750.0
+      "unit_price": 25.0
     },
     {
-      "sku": "23",
+      "sku": "SKU-A104",
       "description": "Elephant T-shirt",
       "size": "S",
       "color": "White",
       "quantity": 5,
-      "unit_price": 100.0,
-      "amount": 500.0
+      "unit_price": 100.0
     }
-  ],
-  "required": []
+  ]
 }

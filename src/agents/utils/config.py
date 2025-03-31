@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from azure.identity import get_bearer_token_provider, DefaultAzureCredential
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel import Kernel
 
@@ -8,7 +8,9 @@ from semantic_kernel import Kernel
 load_dotenv(override=True)
 
 token_provider = get_bearer_token_provider(
-    DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+    # AzureDeveloperCliCredential(tenant_id=os.getenv("AZURE_TENANT_ID")),
+    DefaultAzureCredential(),
+    "https://cognitiveservices.azure.com/.default",
 )
 
 
@@ -17,26 +19,38 @@ class Config:
     PUBSUB_NAME = os.getenv("PUBSUB_NAME")
     TOPIC_NAME = os.getenv("TOPIC_NAME")
     DATA_STORE_NAME = os.getenv("DATA_STORE_NAME", "data")
+    USE_DAPR = os.getenv("DAPR_HTTP_PORT", "") != ""
+    LOCAL_DATA_FOLDER = os.getenv("LOCAL_DATA_FOLDER", "data")
 
     def validate(self):
-        # if not self.PUBSUB_NAME:
-        #     raise ValueError("PUBSUB_NAME is not set in the environment variables.")
-        # if not self.TOPIC_NAME:
-        #     raise ValueError("TOPIC_NAME is not set in the environment variables.")
-        # if not self.DATA_STORE_NAME:
-        #     raise ValueError("DATA_STORE_NAME is not set in the environment variables.")
-        pass
+        # Validate the configuration
+
+        # These are required for Dapr
+        if self.USE_DAPR:
+            if not self.PUBSUB_NAME:
+                raise ValueError("PUBSUB_NAME is not set in the environment variables.")
+            if not self.TOPIC_NAME:
+                raise ValueError("TOPIC_NAME is not set in the environment variables.")
+            if not self.DATA_STORE_NAME:
+                raise ValueError(
+                    "DATA_STORE_NAME is not set in the environment variables."
+                )
+        else:
+            if not self.LOCAL_DATA_FOLDER:
+                raise ValueError(
+                    "LOCAL_DATA_FOLDER is not set in the environment variables."
+                )
 
 
 config = Config()
 config.validate()
 
 
-def get_azure_openai_client():
+def get_azure_openai_client(deployment_name: str = None):
     """
     Returns an instance of AzureChatCompletion configured with the necessary credentials.
     """
-    return AzureChatCompletion(ad_token_provider=token_provider)
+    return AzureChatCompletion(deployment_name=deployment_name)
 
 
 def create_kernel() -> Kernel:

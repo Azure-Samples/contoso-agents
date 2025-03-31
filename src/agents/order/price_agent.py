@@ -1,44 +1,50 @@
 from typing import Annotated
 from semantic_kernel.agents import ChatCompletionAgent
+from semantic_kernel.functions import kernel_function
 from utils.config import get_azure_openai_client
-from dapr.clients import DaprClient
-from utils.config import config
+from utils.store import get_data_store
 
 
 class PricingAgentPlugin:
 
+    def __init__(self):
+        self.data_store = get_data_store()
+
+    @kernel_function
     async def check_discount(
         self, sku: str, quantity: int
     ) -> Annotated[float, "Discount percentage"]:
         """
         Check if a discount is applicable based on the SKU and quantity.
         """
-        with DaprClient() as client:
-            # Get the discount from a hypothetical service using Dapr state
-            discount = client.get_state(
-                store_name=config.DATA_STORE_NAME,
-                key=sku,
-                metadata={"partitionKey": "SKU"},
-            ).json()
-            if discount:
-                return discount
-            else:
-                return 0.0
+        result = await self.data_store.get_data(sku, "discount")
+        if result and result["minimum"] >= quantity:
+            return result["discount"]
+        else:
+            return 0.0
 
+    @kernel_function
     async def check_customer_pricelist(
         self, sku: str, customer_id: str
     ) -> Annotated[float, "Customer price"]:
         """
         Check if a customer has a specific price for the SKU.
         """
-        # Placeholder logic for checking customer price
-        if sku.startswith("CUSTOMER") and customer_id == "VIP":
-            return 100.0
+        pricesheet = await self.data_store.get_data(customer_id, "customer")
+        if pricesheet:
+            prices = pricesheet["pricesheet"]["items"]
+
+            for price in prices:
+                if price["sku"] == sku:
+                    return price["price"]
+            return None
+
+        return None
 
 
 pricing_agent = ChatCompletionAgent(
-    id="discount_agent",
-    name="DiscountAgent",
+    id="pricing_agent",
+    name="PricingAgent",
     description="This agent helps to determine if a discount is applicable based on the order details.",
     instructions="""
 You are a pricing agent that checks if a discount is applicable based on the order details.

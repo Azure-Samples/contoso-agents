@@ -23,7 +23,7 @@ param openAIName string
 param openAIResourceGroupName string
 
 param openAIModel string = 'gpt-4o-mini'
-param openAIApiVersion string = '2024-08-01-preview'
+param openAIApiVersion string = '2024-12-01-preview'
 
 
 @description('Azure Bot app ID')
