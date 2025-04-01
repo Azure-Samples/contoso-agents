@@ -227,6 +227,7 @@ resource agentsContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
             { name: 'AZURE_OPENAI_API_KEY', value: openAiApiKey }
             { name: 'AZURE_OPENAI_API_VERSION', value: openAiApiVersion }
             { name: 'SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE', value: 'true' }
+            { name: 'DATA_STORE_NAME', value: 'data' }
             { name: 'PUBSUB_NAME', value: 'inbox' }
             { name: 'TOPIC_NAME', value: 'events' }
           ]

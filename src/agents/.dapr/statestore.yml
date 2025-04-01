@@ -1,7 +1,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: data
+  name: statestore
 spec:
   type: state.azure.cosmosdb
   version: v1
@@ -15,5 +15,6 @@ spec:
   - name: database
     value: "orders"
   - name: collection
-    value: "data"
-  
+    value: "conversation"
+  - name: actorStateStore
+    value: "true"

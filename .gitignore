@@ -172,3 +172,9 @@ cython_debug/
 
 .chainlit/
 .azure/
+
+# Dapr
+secrets.json
+
+# Tests
+tests/logs/
