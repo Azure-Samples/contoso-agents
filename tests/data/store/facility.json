@@ -1,0 +1,71 @@
+[
+  {
+    "id": "wh001",
+    "partitionKey": "facility",
+    "name": "Central Warehouse",
+    "location": "New York, NY",
+    "skuAvailability": [
+      {
+        "sku": "SKU-A100",
+        "availableQuantity": 250,
+        "deliveryETA": "3 business days"
+      },
+      {
+        "sku": "SKU-A102",
+        "availableQuantity": 150,
+        "deliveryETA": "5 business days"
+      },
+      {
+        "sku": "SKU-C300",
+        "availableQuantity": 75,
+        "deliveryETA": "7 business days"
+      }
+    ]
+  },
+  {
+    "id": "wh002",
+    "partitionKey": "facility",
+    "name": "West Coast Distribution Center",
+    "location": "San Francisco, CA",
+    "skuAvailability": [
+      {
+        "sku": "SKU-A100",
+        "availableQuantity": 180,
+        "deliveryETA": "14 business days"
+      },
+      {
+        "sku": "SKU-D400",
+        "availableQuantity": 200,
+        "deliveryETA": "6 business days"
+      },
+      {
+        "sku": "SKU-A104",
+        "availableQuantity": 90,
+        "deliveryETA": "13 business days"
+      }
+    ]
+  },
+  {
+    "id": "wh003",
+    "partitionKey": "facility",
+    "name": "Midwest Hub",
+    "location": "Chicago, IL",
+    "skuAvailability": [
+      {
+        "sku": "SKU-A102",
+        "availableQuantity": 120,
+        "deliveryETA": "3 business days"
+      },
+      {
+        "sku": "SKU-A103",
+        "availableQuantity": 60,
+        "deliveryETA": "4 business days"
+      },
+      {
+        "sku": "SKU-A104",
+        "availableQuantity": 45,
+        "deliveryETA": "14 business days"
+      }
+    ]
+  }
+]

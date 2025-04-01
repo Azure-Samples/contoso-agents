@@ -1,3 +1,5 @@
+from sk_ext.team import Team
+from sk_ext.speaker_election_strategy import SpeakerElectionStrategy
 from sk_ext.planned_team import PlannedTeam
 from sk_ext.planning_strategy import DefaultPlanningStrategy
 from sk_ext.feedback_strategy import KernelFunctionFeedbackStrategy
@@ -10,10 +12,11 @@ from utils.config import create_kernel
 
 kernel = create_kernel()
 
-order_team = PlannedTeam(
-    id="order_team",
-    name="OrderTeam",
-    description="Order Team",
+# used in order processing
+processing_team = PlannedTeam(
+    id="order_processing_team",
+    name="OrderProcessingTeam",
+    description="Order Processing Team",
     agents=[
         pricing_agent,
         validator_agent,
@@ -47,5 +50,22 @@ The feedback MUST be a JSON object with the following structure:
 {{{{$history}}}}
 """,
         ),
+    ),
+)
+
+# Used in chat/skill
+assistant_team = Team(
+    id="order_assistant_team",
+    name="OrderAssistantTeam",
+    description="Order Assistant Team",
+    agents=[
+        pricing_agent,
+        validator_agent,
+        substitution_agent,
+        fulfillment_agent,
+    ],
+    kernel=kernel,
+    speaker_election_strategy=SpeakerElectionStrategy(
+        kernel=kernel, include_tools_descriptions=True
     ),
 )

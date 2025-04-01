@@ -71,9 +71,9 @@ module azureopenai 'br/public:avm/res/web/connection:0.4.1' = {
 }
 
 module logicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
-  name: 'approval-logicapp'
+  name: 'trigger-logicapp'
   params: {
-    name: '${prefix}-approval-${uniqueId}'
+    name: '${prefix}-trigger-${uniqueId}'
     location: location
     managedIdentities: { userAssignedResourceIds: [userAssignedIdentityResourceId] }
     diagnosticSettings: [
@@ -121,6 +121,37 @@ module logicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
           }
         }
       }
+    }
+  }
+}
+
+
+module approvalNotificationLogicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
+  name: 'notification-logicapp'
+  params: {
+    name: '${prefix}-notification-${uniqueId}'
+    location: location
+    managedIdentities: { userAssignedResourceIds: [userAssignedIdentityResourceId] }
+    diagnosticSettings: [
+      {
+        name: 'customSetting'
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+          }
+        ]
+        workspaceResourceId: logAnalyticsWorkspaceId
+      }
+    ]
+    workflowActions: {}
+    workflowTriggers: {}
+    workflowParameters: {}
+    definitionParameters: {
+      // '$connections': {
+      //   value: {
+          
+      //   }
+      // }
     }
   }
 }

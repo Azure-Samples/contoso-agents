@@ -4,7 +4,7 @@ import logging
 from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.contents.chat_message_content import ChatMessageContent
 from semantic_kernel.agents import Agent
-from order.order_team import order_team
+from order.order_team import processing_team
 from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
@@ -49,8 +49,10 @@ class SKAgentActor(Actor, SKAgentActorInterface):
             )
 
         # NOTE: this is where we inject the agentic team instance
-        self.process_agent = order_team
-        logger.info(f"Actor {self.id} activated successfully with agent {self.process_agent}")
+        self.process_agent = processing_team
+        logger.info(
+            f"Actor {self.id} activated successfully with agent {self.process_agent}"
+        )
 
     async def get_history(self) -> dict:
         logger.debug(f"Getting conversation history for actor {self.id}")

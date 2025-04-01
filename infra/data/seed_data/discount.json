@@ -1,0 +1,26 @@
+[
+  {
+    "id": "SKU-A100",
+    "partitionKey": "discount",
+    "minimum": 4,
+    "discount": 0.1
+  },
+  {
+    "id": "SKU-A102",
+    "partitionKey": "discount",
+    "minimum": 20,
+    "discount": 0.2
+  },
+  {
+    "id": "SKU-A104",
+    "partitionKey": "discount",
+    "minimum": 30,
+    "discount": 0.15
+  },
+  {
+    "id": "SKU-A104",
+    "partitionKey": "discount",
+    "minimum": 5,
+    "discount": 0.25
+  }
+]

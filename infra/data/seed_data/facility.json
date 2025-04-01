@@ -1,6 +1,7 @@
 [
   {
     "id": "wh001",
+    "partitionKey": "facility",
     "name": "Central Warehouse",
     "location": "New York, NY",
     "skuAvailability": [
@@ -23,6 +24,7 @@
   },
   {
     "id": "wh002",
+    "partitionKey": "facility",
     "name": "West Coast Distribution Center",
     "location": "San Francisco, CA",
     "skuAvailability": [
@@ -45,6 +47,7 @@
   },
   {
     "id": "wh003",
+    "partitionKey": "facility",
     "name": "Midwest Hub",
     "location": "Chicago, IL",
     "skuAvailability": [

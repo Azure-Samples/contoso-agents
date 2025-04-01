@@ -16,13 +16,12 @@ class FulfillmentPlugin:
         return now.strftime("%A, %d %B, %Y")
 
     @kernel_function
-    async def get_order_status(self, order_id: str) -> str:
+    async def get_order(self, order_id: str) -> str:
         """
         Get the status of an order.
         """
-        # TODO improve for approver Q&A chat
-        # Simulate fetching order status from a database or API
-        return f"Order {order_id} is currently being processed."
+        order = await self.data_store.get_data(order_id, "order")
+        return order
 
     @kernel_function
     async def finalize_order(self, order_id: str, updated_order) -> None:
@@ -46,7 +45,7 @@ class FulfillmentPlugin:
         Check the availability of a list of SKUs.
         """
         # TODO for real data, build a query to filter
-        facilities = self.data_store.query_data("", "facilities")
+        facilities = self.data_store.query_data("SELECT * FROM c", "facility")
 
         return facilities
 

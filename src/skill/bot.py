@@ -46,6 +46,7 @@ async def setup_chathistory(context: TurnContext, state: TurnState):
 
     return state
 
+
 # NOTE matching interface in src/agents/sk_actor.py
 
 
@@ -65,7 +66,9 @@ async def on_message(context: TurnContext, state: TurnState):
     user_message = context.activity.text
 
     proxy: SKAgentActorInterface = ActorProxy.create(
-        "SKAgentActor", ActorId(context.activity.conversation), SKAgentActorInterface
+        "SKAgentActor",
+        ActorId(context.activity.conversation["id"]),
+        SKAgentActorInterface,
     )
     response = await proxy.ask(user_message)
 
