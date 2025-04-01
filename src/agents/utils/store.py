@@ -12,6 +12,9 @@ class DataStore(ABC):
     async def query_data(self, query: str, partition_key) -> list[dict]:
         pass
 
+    async def save_data(self, key: str, partition_key: str, data: dict) -> None:
+        pass
+
 
 class DaprDataStore(DataStore):
     async def get_data(self, key: str, partition_key: str) -> dict:
@@ -31,6 +34,16 @@ class DaprDataStore(DataStore):
             )
 
             return response.results
+
+    async def save_data(self, key: str, partition_key: str, data: dict) -> None:
+        with DaprClient() as client:
+            # Save the discount to a hypothetical service using Dapr state
+            client.save_state(
+                store_name=config.DATA_STORE_NAME,
+                key=key,
+                value=json.dumps(data),
+                metadata={"partitionKey": partition_key},
+            )
 
 
 class LocalDataStore(DataStore):
@@ -65,6 +78,21 @@ class LocalDataStore(DataStore):
 
         # Return the specific key's data, assuming "id" is the key in the JSON
         return data
+
+    async def save_data(self, key: str, partition_key: str, data: any) -> None:
+        # Read from local file using partition key as filename
+        with open(os.path.join(self.data_folder, f"{partition_key}.json"), "r") as file:
+            existing_data = file.read()
+
+        # Assuming the data is in JSON format, parse it
+        existing_data: list[dict] = json.loads(existing_data)
+
+        # Append new data to the existing data
+        existing_data.append(data)
+
+        # Write back to the file
+        with open(os.path.join(self.data_folder, f"{partition_key}.json"), "w") as file:
+            file.write(json.dumps(existing_data))
 
 
 def get_data_store() -> DataStore:

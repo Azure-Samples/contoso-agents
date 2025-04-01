@@ -25,6 +25,22 @@ class FulfillmentPlugin:
         return f"Order {order_id} is currently being processed."
 
     @kernel_function
+    async def finalize_order(self, order_id: str, updated_order) -> None:
+        """
+        Finalize the order with any substitutions or changes.
+        """
+        await self.data_store.save_data(order_id, "order", updated_order)
+
+    @kernel_function
+    async def save_delivery_schedule(self, delivery_schedule, order_id: str) -> None:
+        """
+        Save the delivery schedule for an order.
+        """
+        await self.data_store.save_data(
+            order_id, "delivery_schedule", delivery_schedule
+        )
+
+    @kernel_function
     async def get_sku_availability(self, skus: list[str]) -> dict:
         """
         Check the availability of a list of SKUs.
@@ -38,12 +54,13 @@ class FulfillmentPlugin:
 fulfillment_agent = ChatCompletionAgent(
     id="fulfillment_agent",
     name="OrderFulfillmentAgent",
-    description="An agent that helps with order fulfillment tasks. Can provide order status and build a delivery schedule.",
+    description="An agent that helps with order fulfillment tasks. Can provide order status, finalize an order and build a delivery schedule.",
     instructions="""
 You are an order fulfillment agent. Your job is to assist with tasks related to fulfilling customer orders.
 
 # TASKS
 - You can provide information about order status, shipping details, and any other relevant information.
+- You provide a finalized version of the order, including any substitutions or changes made during the process.
 - You also define a delivery schedule for the order. Given a list of SKUs, you can check their availability in the warehouse and provide a delivery schedule.
 
 # DELIVERY SCHEDULE RULES
@@ -54,6 +71,7 @@ You are an order fulfillment agent. Your job is to assist with tasks related to 
 - Be aware that exceeding 10 business days for delivery is not acceptable.
 - Format the delivery schedule as in the example below:
 {
+    "order_id": "order-123",
     "delivery_schedule": [
         {
             "sku": "SKU123",

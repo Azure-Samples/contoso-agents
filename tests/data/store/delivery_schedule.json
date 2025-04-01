@@ -1,0 +1,25 @@
+[
+  {
+    "order_id": "order-1617235200000",
+    "delivery_schedule": [
+      {
+        "sku": "SKU-A100",
+        "facility": "Facility A",
+        "quantity": 4,
+        "delivery_date": "2025-04-03"
+      },
+      {
+        "sku": "SKU-A103",
+        "facility": "Facility A",
+        "quantity": 50,
+        "delivery_date": "2025-04-03"
+      },
+      {
+        "sku": "SKU-A104",
+        "facility": "Facility A",
+        "quantity": 5,
+        "delivery_date": "2025-04-03"
+      }
+    ]
+  }
+]

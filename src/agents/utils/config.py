@@ -20,7 +20,7 @@ class Config:
     TOPIC_NAME = os.getenv("TOPIC_NAME")
     DATA_STORE_NAME = os.getenv("DATA_STORE_NAME", "data")
     USE_DAPR = os.getenv("DAPR_HTTP_PORT", "") != ""
-    LOCAL_DATA_FOLDER = os.getenv("LOCAL_DATA_FOLDER", "data")
+    LOCAL_DATA_FOLDER = os.getenv("LOCAL_DATA_FOLDER", "data/store")
 
     def validate(self):
         # Validate the configuration

@@ -22,7 +22,9 @@ order_team = PlannedTeam(
         # reviewer_agent, # NOTE not required with PlannedTeam, which has its own feedback strategy
     ],
     kernel=kernel,
-    planning_strategy=DefaultPlanningStrategy(kernel=kernel),
+    planning_strategy=DefaultPlanningStrategy(
+        kernel=kernel, include_tools_descriptions=True
+    ),
     feedback_strategy=KernelFunctionFeedbackStrategy(
         kernel=kernel,
         function=KernelFunctionFromPrompt(

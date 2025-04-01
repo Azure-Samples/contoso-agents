@@ -2,11 +2,18 @@ from semantic_kernel.agents import ChatCompletionAgent
 from semantic_kernel.functions import kernel_function
 from utils.config import get_azure_openai_client
 from utils.store import get_data_store
+import datetime
 
 
 class ValidationPlugin:
     def __init__(self):
         self.data_store = get_data_store()
+
+    # NOTE TimePlugin is available in the kernel, but has way too many functions
+    @kernel_function(description="Get the current date.")
+    def date(self) -> str:
+        now = datetime.datetime.now()
+        return now.strftime("%A, %d %B, %Y")
 
     @kernel_function
     async def validate_skus(self, sku_list: list[str]) -> list[str]:
@@ -42,6 +49,7 @@ The order will be in JSON format.
 6. The unit price must be greater than 0.
 8. The order must not be empty.
 9. The order must not contain duplicate SKUs.
+10. If the order does not have an ID, generate a new one in format "order-<timestamp>".
 
 ALWAYS base your response on the avaible data. DO NOT invent data or fake information.
 BE SURE TO READ AGAIN THE INSTUCTIONS ABOVE BEFORE PROCEEDING.
