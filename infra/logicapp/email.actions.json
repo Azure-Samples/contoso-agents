@@ -73,7 +73,10 @@
           },
           "method": "post",
           "body": {
-            "ContentData": "@base64(concat('{\n  \"specversion\": \"1.0\",\n  \"type\": \"com.dapr.event.sent\",\n  \"source\": \"approval-logic-app\",\n  \"id\": \"',guid(),'\",\n  \"time\": \"',utcNow(),'\",\n  \"datacontenttype\": \"application/json\",\n  \"data\": ',body('Creates_a_completion_for_the_chat_message')['object'],'\n}\n'))"
+            "ContentData": "@base64(concat('{\n  \"specversion\": \"1.0\",\n  \"type\": \"com.dapr.event.sent\",\n  \"source\": \"approval-logic-app\",\n  \"id\": \"',guid(),'\",\n  \"time\": \"',utcNow(),'\",\n  \"datacontenttype\": \"application/json\",\n  \"data\": ',body('Creates_a_completion_for_the_chat_message')['object'],'\n}\n'))",
+            "Properties": {
+              "order_id": "@concat('order_', utcNow())"
+            }
           },
           "path": "/@{encodeURIComponent(encodeURIComponent('orders'))}/messages",
           "queries": {

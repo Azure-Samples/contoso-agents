@@ -17,16 +17,7 @@ services:
             path: dockerfile
             remoteBuild: true
 hooks:
-    # postprovision: 
-    #     shell: pwsh
-    #     run: |
-    #         $botAppId = azd env get-value BOT_APP_ID
-    #         $endpointUrl = azd env get-value SKILL_ENDPOINT
-    #         # Update app registration homeurl property to match containerapp url
-    #         az ad app update --id $botAppId --set homepageUrl=$endpointUrl            
-    #     interactive: true
-    #     continueOnError: false
-    postdeploy:
+    postprovision: 
         shell: pwsh
         run: |
             pip install -r infra/scripts/requirements.txt

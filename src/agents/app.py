@@ -1,10 +1,10 @@
-from models.order_trigger import OrderTriggerEvent
 import utils.tracing as tracing
 import logging
 from cloudevents.http import from_http
 from dapr.ext.fastapi import DaprApp, DaprActor
 from dapr.actor import ActorProxy, ActorId
 from contextlib import asynccontextmanager
+from dapr.clients import DaprClient
 from sk_actor import SKAgentActor, SKAgentActorInterface
 from fastapi import FastAPI, Request
 from utils.config import config
@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
 
 
 # Create fastapi and register dapr and actors
-app = FastAPI(title="Order Team Agent")
+app = FastAPI(title="Order Team Agent", lifespan=lifespan)
 dapr_app = DaprApp(app)
 actor = DaprActor(app)
 
@@ -55,6 +55,11 @@ actor = DaprActor(app)
     topic=config.TOPIC_NAME,
 )
 async def process_new_order(req: Request):
+    """
+    Process new order event from the pubsub topic.
+    Will route to the SKAgentActor to process the order.
+    NOTE: the actor ID is the order ID.
+    """
     try:
 
         # Read fastapi request body as text
@@ -63,14 +68,23 @@ async def process_new_order(req: Request):
 
         # Parse the body as a CloudEvent
         event = from_http(data=body, headers=req.headers)
-        logger.info(f"Parsed CloudEvent: {event}")
+        data = event.data
+        # TODO check where to get the order ID from
+        order_id = event.get_attributes().get("metadata.order_id")
+        logger.info(f"Parsed CloudEvent: {data}")
 
-        data = OrderTriggerEvent.model_validate(event.data)
         proxy: SKAgentActorInterface = ActorProxy.create(
-            "SKAgentActor", ActorId(f"process_{data.order_id}"), SKAgentActorInterface
+            "SKAgentActor", ActorId(f"process_{order_id}"), SKAgentActorInterface
         )
-        # TODO maybe other formats are also fine
-        await proxy.process(data.model_dump_json())
+        await proxy.process(data)
+
+        with DaprClient() as client:
+            client.publish_event(
+                pubsub_name=config.PUBSUB_NAME,
+                topic_name=config.TOPIC_NAME,
+                data={"order_id": order_id},
+                publish_metadata={"type": "approval"},
+            )
 
         return {"status": "SUCCESS"}
     except Exception as e:

@@ -8,11 +8,12 @@ from .price_agent import pricing_agent
 from .fulfillment_agent import fulfillment_agent
 from .validator_agent import validator_agent
 from .substitution_agent import substitution_agent
+from .user import user_agent
 from utils.config import create_kernel
 
 kernel = create_kernel()
 
-# used in order processing
+# Used in order processing, no HIL
 processing_team = PlannedTeam(
     id="order_processing_team",
     name="OrderProcessingTeam",
@@ -53,7 +54,7 @@ The feedback MUST be a JSON object with the following structure:
     ),
 )
 
-# Used in chat/skill
+# Used in chat/skill with user
 assistant_team = Team(
     id="order_assistant_team",
     name="OrderAssistantTeam",
@@ -63,6 +64,7 @@ assistant_team = Team(
         validator_agent,
         substitution_agent,
         fulfillment_agent,
+        user_agent,  # NOTE: user agent is not used in the processing team
     ],
     kernel=kernel,
     speaker_election_strategy=SpeakerElectionStrategy(

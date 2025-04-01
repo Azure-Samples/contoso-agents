@@ -37,20 +37,11 @@ bot = Application[TurnState](
 )
 
 
-@bot.before_turn
-async def setup_chathistory(context: TurnContext, state: TurnState):
-
-    # chat_history = state.conversation.get("chat_history") or ChatHistory()
-
-    # state.conversation["chat_history"] = chat_history
-
-    return state
-
-
-# NOTE matching interface in src/agents/sk_actor.py
-
-
 class SKAgentActorInterface(ActorInterface):
+    """
+    NOTE must match interface in src/agents/sk_actor.py
+    """
+
     @actormethod(name="ask")
     async def ask(self, input_message: str) -> list[dict]: ...
 
@@ -67,6 +58,8 @@ async def on_message(context: TurnContext, state: TurnState):
 
     proxy: SKAgentActorInterface = ActorProxy.create(
         "SKAgentActor",
+        # NOTE: the actor ID is the conversation ID, not the order ID
+        # this is because the actor is created for each conversation
         ActorId(context.activity.conversation["id"]),
         SKAgentActorInterface,
     )

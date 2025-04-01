@@ -133,6 +133,7 @@ class PlannedTeam(Agent):
         # Channel required to communicate with agents
         channel = await self.create_channel()
         await channel.receive(local_history.messages)
+        must_replan = False
 
         while not self.is_complete:
             # Create a plan based on the current history and feedback (if any)
@@ -163,11 +164,25 @@ class PlannedTeam(Agent):
                         # This prevents forked message to appear in the main history
                         yield message
 
-            # Provide feedback and check if the plan can complete
-            ok, feedback = await self.feedback_strategy.provide_feedback(
-                local_history.messages
-            )
-            self.is_complete = ok
+                        if "~~~REPLAN" in message.content:
+                            # If the agent asks to replan, we need to break the loop and replan
+                            logger.warning(
+                                f"Agent {selected_agent.name} asked to replan"
+                            )
+                            must_replan = True
+                            break
+
+                if must_replan:
+                    break
+
+            if must_replan:
+                self.is_complete = False
+            else:
+                # Provide feedback and check if the plan can complete
+                ok, feedback = await self.feedback_strategy.provide_feedback(
+                    local_history.messages
+                )
+                self.is_complete = ok
 
         # Merge the history if needed
         if self.fork_history:

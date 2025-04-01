@@ -229,7 +229,7 @@ resource agentsContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
             { name: 'SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE', value: 'true' }
             { name: 'DATA_STORE_NAME', value: 'data' }
             { name: 'PUBSUB_NAME', value: 'inbox' }
-            { name: 'TOPIC_NAME', value: 'events' }
+            { name: 'TOPIC_NAME', value: 'orders' }
           ]
         }
       ]

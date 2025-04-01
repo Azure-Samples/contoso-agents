@@ -4,7 +4,7 @@ import logging
 from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.contents.chat_message_content import ChatMessageContent
 from semantic_kernel.agents import Agent
-from order.order_team import processing_team
+from order.order_team import processing_team, assistant_team
 from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
@@ -50,61 +50,40 @@ class SKAgentActor(Actor, SKAgentActorInterface):
 
         # NOTE: this is where we inject the agentic team instance
         self.process_agent = processing_team
-        logger.info(
-            f"Actor {self.id} activated successfully with agent {self.process_agent}"
-        )
+        self.chat_agent = assistant_team
+        logger.info(f"Actor {self.id} activated successfully")
 
     async def get_history(self) -> dict:
         logger.debug(f"Getting conversation history for actor {self.id}")
         return self.history.model_dump()
 
     async def ask(self, input_message: str) -> list[ChatMessageContent]:
-        tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("sk_actor.ask") as span:
-            span.set_attribute("operation_Id", self.id)
-            try:
-                # Option 1: Add as baggage so that it propagates with the context.
-                # baggage.set_baggage("operation_Id", self.id)
+        """
+        Ask the agent a question and return the response.
+        This method is used to handle user input and return the agent's response.
+        """
+        results = await self._invoke_agent(self.chat_agent, input_message)
 
-                logger.info(
-                    f"Invoking actor {self.id} with input message: {input_message}"
-                )
-                self.history.add_user_message(input_message)
-                results: list[ChatMessageContent] = []
+        # Exclude from results all messages with text "PAUSE"
+        # In this implementation, user interruptions are handled by a specifc agent
+        # whose only response is "PAUSE". This is a simple way to handle interruptions,
+        # and we opt not to show this to the user.
+        results = [msg.model_dump() for msg in results if "PAUSE" not in msg.content]
 
-                async for result in self.chat_agent.invoke(history=self.history):
-                    logger.debug(
-                        f"Received result from agent for actor {self.id}: {result}"
-                    )
-                    results.append(result)
-
-                logger.debug(f"Saving conversation state for actor {self.id}")
-
-                # Fix to avoid ChatHistory serialization issue
-                dumped_history = remove_metadata(self.history.model_dump(), "arguments")
-
-                await self._state_manager.set_state("history", dumped_history)
-                await self._state_manager.save_state()
-                logger.info(f"State saved successfully for actor {self.id}")
-
-                # Exclude from results all messages with text "PAUSE"
-                # In this implementation, user interruptions are handled by a specifc agent
-                # whose only response is "PAUSE". This is a simple way to handle interruptions,
-                # and we opt not to show this to the user.
-                results = [
-                    msg.model_dump() for msg in results if "PAUSE" not in msg.content
-                ]
-
-                return results
-            except Exception as e:
-                logger.error(
-                    f"Error occurred in ask for actor {self.id}: {e}", exc_info=True
-                )
-                raise
+        return results
 
     async def process(self, input_message: str) -> list[ChatMessageContent]:
+        """
+        Process the input message using the agent and return the response.
+        This method is used to process order emails
+        """
+        return await self._invoke_agent(self.process_agent, input_message)
+
+    async def _invoke_agent(
+        self, agent: Agent, input_message: str
+    ) -> list[ChatMessageContent]:
         tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("sk_actor.process") as span:
+        with tracer.start_as_current_span("sk_actor._invoke_agent") as span:
             span.set_attribute("operation_Id", self.id)
             try:
                 logger.info(
@@ -119,14 +98,7 @@ class SKAgentActor(Actor, SKAgentActorInterface):
                     )
                     results.append(result)
 
-                logger.debug(f"Saving conversation state for actor {self.id}")
-
-                # Fix to avoid ChatHistory serialization issue
-                dumped_history = remove_metadata(self.history.model_dump(), "arguments")
-
-                await self._state_manager.set_state("history", dumped_history)
-                await self._state_manager.save_state()
-                logger.info(f"State saved successfully for actor {self.id}")
+                await self._save_history()
 
                 return results
             except Exception as e:
@@ -134,6 +106,18 @@ class SKAgentActor(Actor, SKAgentActorInterface):
                     f"Error occurred in ask for actor {self.id}: {e}", exc_info=True
                 )
                 raise
+
+    async def _save_history(self) -> None:
+        """
+        Save the conversation history to the actor's state.
+        This is called automatically when the actor is deactivated.
+        """
+        logger.debug(f"Saving conversation history for actor {self.id}")
+        # Fix to avoid ChatHistory serialization issue
+        dumped_history = remove_metadata(self.history.model_dump(), "arguments")
+        await self._state_manager.set_state("history", dumped_history)
+        await self._state_manager.save_state()
+        logger.info(f"State saved successfully for actor {self.id}")
 
 
 def remove_metadata(data, key: str):

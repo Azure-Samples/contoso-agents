@@ -8,6 +8,7 @@ param formRecognizerEndpoint string
 param formRecognizerKey string
 param azureOpenAIName string
 param azureOpenAIKey string
+param blobStorageName string
 
 
 module office365Connection 'br/public:avm/res/web/connection:0.4.1' = {
@@ -69,11 +70,25 @@ module azureopenai 'br/public:avm/res/web/connection:0.4.1' = {
     }
   }
 }
-
-module logicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
-  name: 'trigger-logicapp'
+module azureblob 'br/public:avm/res/web/connection:0.4.1' = {
+  name: 'azureblob'
   params: {
-    name: '${prefix}-trigger-${uniqueId}'
+    name: 'azureblob'
+    api: {
+      id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'azureblob')
+    }
+    displayName: 'azureblob'
+    parameterValueSet: {
+      name: 'managedIdentityAuth'
+      values: {}
+    }
+  }
+}
+
+module emailLogicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
+  name: 'email-trigger-logicapp'
+  params: {
+    name: '${prefix}-email-${uniqueId}'
     location: location
     managedIdentities: { userAssignedResourceIds: [userAssignedIdentityResourceId] }
     diagnosticSettings: [
@@ -118,6 +133,65 @@ module logicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
               id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'azureopenai')
               connectionId: azureopenai.outputs.resourceId
               connectionName: 'azureopenai'
+          }
+        }
+      }
+    }
+  }
+}
+
+module blobLogicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
+  name: 'blob-trigger-logicapp'
+  params: {
+    name: '${prefix}-blob-${uniqueId}'
+    location: location
+    managedIdentities: { userAssignedResourceIds: [userAssignedIdentityResourceId] }
+    diagnosticSettings: [
+      {
+        name: 'customSetting'
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+          }
+        ]
+        workspaceResourceId: logAnalyticsWorkspaceId
+      }
+    ]
+    workflowActions: loadJsonContent('logicapp/blob.actions.json')
+    workflowTriggers: loadJsonContent('logicapp/blob.triggers.json')
+    workflowParameters: loadJsonContent('logicapp/blob.parameters.json')
+    definitionParameters: {
+      blob: {
+        value: blobStorageName
+      }
+      '$connections': {
+        value: {
+          servicebus: {
+            id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'servicebus')
+            connectionId: sbConnection.outputs.resourceId
+            connectionName: 'servicebus'
+            connectionProperties: {
+                authentication: {
+                    type: 'ManagedServiceIdentity'
+                    identity: userAssignedIdentityResourceId
+                }
+            }
+          }
+          formrecognizer: {
+            id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'formrecognizer')
+            connectionId: frConnection.outputs.resourceId
+            connectionName: 'formrecognizer'
+          }
+          azureblob: {
+              id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'azureblob')
+              connectionId: azureblob.outputs.resourceId
+              connectionName: 'azureblob'
+              connectionProperties: {
+                  authentication: {
+                      type: 'ManagedServiceIdentity'
+                      identity: userAssignedIdentityResourceId
+                  }
+              }
           }
         }
       }

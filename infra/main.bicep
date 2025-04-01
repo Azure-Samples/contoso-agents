@@ -103,60 +103,27 @@ module cosmos 'cosmos.bicep' = {
   }
 }
 
-module sb 'br/public:avm/res/service-bus/namespace:0.11.2' = {
-  name: 'sb'
+module storageaccount 'storage.bicep' = {
+  name: 'storageaccount'
   scope: rg
   params: {
-    name: '${prefix}-sb-${uniqueId}'
-    topics: [
-      {
-        name: 'orders'
-        requiresDuplicateDetection: false
-        subscriptions: [
-          {
-            name: 'dump' // For debugging purposes
-          }
-          {
-            name: 'inbox'
-            rules: [
-              {
-                name: 'inbox'
-                sqlFilter: {
-                  sqlExpression: 'type = \'trigger\''
-                }
-              }
-            ]
-          }
-          {
-            name: 'approval'
-            rules: [
-              {
-                name: 'approval'
-                sqlFilter: {
-                  sqlExpression: 'type = \'approval\''
-                }
-              }
-            ]
-          }
-        ]
-      }
-    ]
-    roleAssignments: concat(
-      [
-        {
-          principalId: uami.outputs.principalId
-          principalType: 'ServicePrincipal'
-          roleDefinitionIdOrName: 'Azure Service Bus Data Owner'
-        }
-      ],
-      principalType == 'User' ? [
-        {
-          principalId: currentUserId
-          principalType: 'User'
-          roleDefinitionIdOrName: 'Azure Service Bus Data Owner'
-        }
-      ] : []
-    )
+    uniqueId: uniqueId
+    prefix: prefix
+    userAssignedIdentityPrincipalId: uami.outputs.principalId
+    currentUserId: currentUserId
+    principalType: principalType
+  }
+}
+
+module servicebus './sb.bicep' = {
+  name: 'servicebus'
+  scope: rg
+  params: {
+    uniqueId: uniqueId
+    prefix: prefix
+    userAssignedIdentityPrincipalId: uami.outputs.principalId
+    currentUserId: currentUserId
+    principalType: principalType
   }
 }
 
@@ -179,11 +146,12 @@ module logicapp './logicapp.bicep' = {
     location: location
     userAssignedIdentityResourceId: uami.outputs.identityId
     logAnalyticsWorkspaceId: appin.outputs.logAnalyticsWorkspaceId
-    serviceBusName: sb.outputs.name
+    serviceBusName: servicebus.outputs.name
     azureOpenAIName: openAIName
     azureOpenAIKey: openAI.outputs.openAIKey
     formRecognizerEndpoint: fr.outputs.formRecognizerEndpoint
-    formRecognizerKey: fr.outputs.formRecognizerKey    
+    formRecognizerKey: fr.outputs.formRecognizerKey
+    blobStorageName: storageaccount.outputs.name
   }
 }
 
@@ -203,7 +171,7 @@ module aca './aca.bicep' = {
     openAiEndpoint: openAI.outputs.openAIEndpoint
     openAiModel: openAIModel
     openAiApiVersion: openAIApiVersion
-    serviceBusNamespaceFqdn: '${sb.outputs.name}.servicebus.windows.net'
+    serviceBusNamespaceFqdn: '${servicebus.outputs.name}.servicebus.windows.net'
     cosmosDbEndpoint: cosmos.outputs.cosmosDbEndpoint
     cosmosDbDatabaseName: cosmos.outputs.cosmosDbDatabase
     dataContainerName: cosmos.outputs.dataContainerName
