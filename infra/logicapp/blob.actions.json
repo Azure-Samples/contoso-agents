@@ -1,5 +1,8 @@
 {
   "Send_message": {
+    "runAfter": {
+      "Parse_as_JSON": ["Succeeded"]
+    },
     "type": "ApiConnection",
     "inputs": {
       "host": {
@@ -9,18 +12,21 @@
       },
       "method": "post",
       "body": {
-        "ContentData": "@base64(concat('{','\n','  \"specversion\": \"1.0\",','\n','  \"type\": \"com.dapr.event.sent\",','\n','  \"source\": \"blob-logic-app\",','\n','  \"id\": \"',guid(),'\",','\n','  \"time\": \"',utcNow(),'\",','\n','  \"datacontenttype\": \"application/json\",','\n','  \"data\": \"',replace(body('Parse_as_JSON')['choices'][0]['message']['content'], '\n', ''),'\"','\n','}'))"
+        "ContentData": "@base64(concat('{','\n','\"specversion\": \"1.0\",','\n','\"type\": \"com.dapr.event.sent\",','\n','\"source\": \"blob-logic-app\",','\n','\"id\": \"',guid(),'\",','\n','\"time\": \"',utcNow(),'\",','\n','\"datacontenttype\": \"application/json\",','\n','\"data\": {  \"order_id\": \"',concat('order_', utcNow()),'\", \"input\": ',replace(replace(replace(body('Parse_as_JSON')['choices'][0]['message']['content'], '```json', ''), '```', ''), '\n',''),'}','\n','}'))",
+        "Properties": {
+          "type": "trigger"
+        }
       },
       "path": "/@{encodeURIComponent(encodeURIComponent('orders'))}/messages",
       "queries": {
         "systemProperties": "None"
       }
-    },
-    "runAfter": {
-      "Parse_as_JSON": ["Succeeded"]
     }
   },
   "Analyze_Document": {
+    "runAfter": {
+      "Get_blob_content_(V2)": ["Succeeded"]
+    },
     "type": "ApiConnection",
     "inputs": {
       "host": {
@@ -34,12 +40,10 @@
       "queries": {
         "api-version": "2024-11-30"
       }
-    },
-    "runAfter": {
-      "Get_blob_content_(V2)": ["Succeeded"]
     }
   },
   "Get_blob_content_(V2)": {
+    "runAfter": {},
     "type": "ApiConnection",
     "inputs": {
       "host": {
@@ -52,10 +56,12 @@
       "queries": {
         "inferContentType": true
       }
-    },
-    "runAfter": {}
+    }
   },
   "Parse_as_JSON": {
+    "runAfter": {
+      "Analyze_Document": ["Succeeded"]
+    },
     "type": "ApiConnection",
     "inputs": {
       "host": {
@@ -78,6 +84,7 @@
         "temperature": 1,
         "top_p": 1,
         "stream": false,
+        "stop": null,
         "max_tokens": 4096,
         "presence_penalty": 0,
         "frequency_penalty": 0,
@@ -92,9 +99,6 @@
       "queries": {
         "api-version": "2025-01-01-preview"
       }
-    },
-    "runAfter": {
-      "Analyze_Document": ["Succeeded"]
     }
   }
 }

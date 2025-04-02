@@ -9,7 +9,7 @@ class DataStore(ABC):
     async def get_data(self, key: str, partition_key: str) -> dict:
         pass
 
-    async def query_data(self, query: str, partition_key) -> list[dict]:
+    async def query_data(self, query: object, partition_key) -> list[dict]:
         pass
 
     async def save_data(self, key: str, partition_key: str, data: dict) -> None:
@@ -26,11 +26,13 @@ class DaprDataStore(DataStore):
                 metadata={"partitionKey": partition_key},
             ).json()
 
-    async def query_data(self, query: str, partition_key: str) -> list[dict]:
+    async def query_data(self, query: object, partition_key: str) -> list[dict]:
         with DaprClient() as client:
             # Query the discount from a hypothetical service using Dapr state
             response = client.query_state(
-                store_name=config.DATA_STORE_NAME, query=query
+                store_name=config.DATA_STORE_NAME,
+                query=json.dumps(query),
+                states_metadata={"partitionKey": partition_key},
             )
 
             return response.results
@@ -66,7 +68,7 @@ class LocalDataStore(DataStore):
                 return item
         return None
 
-    async def query_data(self, query: str, partition_key: str) -> list[dict]:
+    async def query_data(self, query: object, partition_key: str) -> list[dict]:
         # Read from local file using partition key as filename
         with open(os.path.join(self.data_folder, f"{partition_key}.json"), "r") as file:
             data = file.read()

@@ -45,6 +45,56 @@ async def copilot_manifest(req: Request):
     )
 
 
+async def manifest_teams(req: Request):
+    import os
+    import zipfile
+    import io
+
+    # determine the base directory of the current file
+    base_dir = os.path.dirname(__file__)
+    # load manifest from file and interpolate with env vars using an absolute path
+    manifest_path = os.path.join(base_dir, "teams_package", "manifest.json")
+    with open(manifest_path, "r") as f:
+        manifest = f.read()
+    manifest = (
+        manifest.replace("__botAppId", config.APP_ID)
+        .replace("__teamsAppId", config.TEAMS_APP_ID)
+        .replace("__teamsAppName", config.TEAMS_APP_NAME)
+    )
+
+    # Create a zip file with the manifest and the icon using absolute paths for the icons
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+        # Add the manifest file
+        zip_file.writestr("manifest.json", manifest)
+        # Add the icon files
+        icon_files = [
+            ("outline.png", os.path.join(base_dir, "teams_package", "outline.png")),
+            ("color.png", os.path.join(base_dir, "teams_package", "color.png")),
+        ]
+        for arcname, file_path in icon_files:
+            with open(file_path, "rb") as icon:
+                zip_file.writestr(arcname, icon.read())
+
+    # Move the buffer position to the beginning
+    zip_buffer.seek(0)
+
+    # Create a response with the zip file
+    response = web.StreamResponse(
+        status=200,
+        headers={
+            "Content-Type": "application/zip",
+            "Content-Disposition": f"attachment; filename={config.TEAMS_APP_NAME}.zip",
+        },
+    )
+    await response.prepare(req)
+    await response.write(zip_buffer.read())
+    await response.write_eof()
+
+    # Return the response
+    return response
+
+
 APP = web.Application()
 APP.router.add_post("/api/messages", messages)
 APP.router.add_get("/manifest", copilot_manifest)

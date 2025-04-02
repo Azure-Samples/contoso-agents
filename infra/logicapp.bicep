@@ -193,6 +193,11 @@ module blobLogicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
                   }
               }
           }
+          azureopenai: {
+              id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'azureopenai')
+              connectionId: azureopenai.outputs.resourceId
+              connectionName: 'azureopenai'
+          }
         }
       }
     }

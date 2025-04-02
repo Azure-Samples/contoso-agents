@@ -84,7 +84,7 @@ class SKAgentActor(Actor, SKAgentActorInterface):
     ) -> list[ChatMessageContent]:
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("sk_actor._invoke_agent") as span:
-            span.set_attribute("operation_Id", self.id)
+            span.set_attribute("operation_Id", str(self.id))
             try:
                 logger.info(
                     f"Invoking actor {self.id} with input message: {input_message}"

@@ -1,5 +1,6 @@
 from sk_ext.team import Team
 from sk_ext.speaker_election_strategy import SpeakerElectionStrategy
+from sk_ext.termination_strategy import UserInputRequiredTerminationStrategy
 from sk_ext.planned_team import PlannedTeam
 from sk_ext.planning_strategy import DefaultPlanningStrategy
 from sk_ext.feedback_strategy import KernelFunctionFeedbackStrategy
@@ -67,7 +68,8 @@ assistant_team = Team(
         user_agent,  # NOTE: user agent is not used in the processing team
     ],
     kernel=kernel,
-    speaker_election_strategy=SpeakerElectionStrategy(
+    selection_strategy=SpeakerElectionStrategy(
         kernel=kernel, include_tools_descriptions=True
     ),
+    termination_strategy=UserInputRequiredTerminationStrategy(stop_agents=[user_agent]),
 )

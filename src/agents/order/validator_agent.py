@@ -20,7 +20,7 @@ class ValidationPlugin:
         """
         Validates the SKU of the order.
         """
-        avaiilable_skus = await self.data_store.query_data("SELECT * FROM c", "sku")
+        avaiilable_skus = await self.data_store.query_data({}, "sku")
         skus_dict = {sku["id"]: sku for sku in avaiilable_skus}
 
         # Check if all SKUs are available
