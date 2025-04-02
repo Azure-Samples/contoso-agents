@@ -17,11 +17,14 @@ param dataContainerName string
 param stateContainerName string
 param agentAppExists bool
 param skillAppExists bool
+param adminAppExists bool
 param emptyContainerImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
 param botAppId string
 @secure()
 param botPassword string
 param botTenantId string
+param teamsAppName string
+param teamsAppId string
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
   name: logAnalyticsWorkspaceName
@@ -91,6 +94,7 @@ resource daprStateComponent 'Microsoft.App/managedEnvironments/daprComponents@20
     version: 'v1'
     scopes: [
       'agents'
+      'admin'
     ]
     metadata: [
       {
@@ -129,6 +133,7 @@ resource daprDataStoreComponent 'Microsoft.App/managedEnvironments/daprComponent
     version: 'v1'
     scopes: [
       'agents'
+      'admin'
     ]
     metadata: [
       {
@@ -170,6 +175,14 @@ module fetchLatestImageSkill './fetch-container-image.bicep' = {
   params: {
     exists: skillAppExists
     name: '${prefix}-skill-${uniqueId}'
+  }
+}
+
+module fetchLatestImageAdmin './fetch-container-image.bicep' = {
+  name: 'admin-app-image'
+  params: {
+    exists: adminAppExists
+    name: '${prefix}-admin-${uniqueId}'
   }
 }
 
@@ -287,6 +300,65 @@ resource skillContainerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
             { name: 'BOT_APP_ID', value: botAppId }
             { name: 'BOT_PASSWORD', value: botPassword }
             { name: 'BOT_TENANT_ID', value: botTenantId }
+            { name: 'TEAMS_APP_NAME', value: teamsAppName}
+            { name: 'TEAMS_APP_ID', value: teamsAppId}
+          ]
+        }
+      ]
+    }
+  }
+}
+
+resource adminContainerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
+  name: '${prefix}-admin-${uniqueId}'
+  location: location
+  tags: {'azd-service-name': 'admin' }
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${userAssignedIdentityResourceId}': {}
+    }
+  }
+  properties: {
+    managedEnvironmentId: containerAppEnv.id
+    configuration: {
+      dapr: {
+        enabled: true
+        appId: 'admin'
+        appPort: 80
+      }
+      activeRevisionsMode: 'Single'
+      ingress: {
+        external: true
+        targetPort: 80
+        transport: 'auto'
+      }
+      registries: [
+        {
+          server: '${containerRegistry}.azurecr.io'
+          identity: userAssignedIdentityResourceId
+        }
+      ]
+    }
+    template: {
+      scale: {
+        minReplicas: 1
+        maxReplicas: 1
+      }
+      containers: [
+        {
+          name: 'admin'
+          image: adminAppExists ? fetchLatestImageAdmin.outputs.containers[0].image : emptyContainerImage
+          resources: {
+            cpu: 1
+            memory: '2Gi'
+          }
+          env: [
+            { name: 'AZURE_CLIENT_ID', value: userAssignedIdentityClientId }
+            { name: 'APPLICATIONINSIGHTS_CONNECTIONSTRING', value: applicationInsightsConnectionString }
+            { name: 'COSMOSDB_ENDPOINT', value: cosmosDbEndpoint }
+            { name: 'COSMOSDB_DATABASE', value: cosmosDbDatabaseName }
+            { name: 'COSMOSDB_CONTAINER', value: stateContainerName }
           ]
         }
       ]

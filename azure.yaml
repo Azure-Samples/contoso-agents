@@ -16,6 +16,13 @@ services:
         docker:
             path: dockerfile
             remoteBuild: true
+    admin:
+        project: src/admin
+        host: containerapp
+        language: python
+        docker:
+            path: dockerfile
+            remoteBuild: true
 hooks:
     postprovision: 
         shell: pwsh

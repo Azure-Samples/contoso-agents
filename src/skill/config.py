@@ -18,6 +18,9 @@ class Config:
     APP_TENANTID = os.getenv("BOT_TENANT_ID")
     APP_TYPE = os.getenv("APP_TYPE", "singletenant")
 
+    TEAMS_APP_ID = os.getenv("TEAMS_APP_ID")
+    TEAMS_APP_NAME = os.getenv("TEAMS_APP_NAME")
+
     # Required for Copilot Skill
     # Can be a list of allowed agent Ids,
     # or "*" to allow any agent
@@ -35,6 +38,10 @@ class Config:
         if not self.ALLOWED_CALLERS:
             raise Exception(
                 "Missing required configuration. ALLOWED_CALLERS must be set."
+            )
+        if not self.TEAMS_APP_ID or not self.TEAMS_APP_NAME:
+            raise Exception(
+                "Missing required configuration. TEAMS_APP_ID and TEAMS_APP_NAME must be set."
             )
 
 

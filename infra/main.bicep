@@ -33,9 +33,15 @@ param botAppId string
 param botPassword string
 @description('Azure Bot tenant ID')
 param botTenantId string
+@description('Teams App ID')
+param teamsAppId string = newGuid()
+@description('Teams App Name')
+param teamsAppName string = 'OrderProcessingAssistant'
 
+// AZD managed parameters
 param agentAppExists bool = false
 param skillAppExists bool = false
+param adminAppExists bool = false
 param runningOnGh string = ''
 
 var tags = {
@@ -180,8 +186,11 @@ module aca './aca.bicep' = {
     botAppId: botAppId
     botPassword: botPassword
     botTenantId: botTenantId
+    teamsAppId: teamsAppId
+    teamsAppName: teamsAppName
     agentAppExists: agentAppExists
     skillAppExists: skillAppExists
+    adminAppExists: adminAppExists
   }
 }
 

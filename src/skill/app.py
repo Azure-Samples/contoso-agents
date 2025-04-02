@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-# Wndpoint for processing messages
+# Endpoint for processing messages
 async def messages(req: Request):
     """
     Endpoint for processing messages with the Skill Bot.
@@ -98,6 +98,7 @@ async def manifest_teams(req: Request):
 APP = web.Application()
 APP.router.add_post("/api/messages", messages)
 APP.router.add_get("/manifest", copilot_manifest)
+APP.router.add_get("/teams/manifest", manifest_teams)
 
 if __name__ == "__main__":
     try:

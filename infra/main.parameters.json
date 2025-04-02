@@ -31,6 +31,9 @@
     },
     "skillAppExists": {
       "value": "${SERVICE_SKILL_RESOURCE_EXISTS=false}"
+    },
+    "adminAppExists": {
+      "value": "${SERVICE_ADMIN_RESOURCE_EXISTS=false}"
     }
   }
 }
