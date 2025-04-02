@@ -1,5 +1,4 @@
 import streamlit as st
-from dapr.actor import ActorInterface, actormethod
 from semantic_kernel.contents import ChatHistory
 from azure.cosmos import CosmosClient
 from azure.identity import DefaultAzureCredential
@@ -16,21 +15,6 @@ cosmos_client = CosmosClient(
 )
 db_client = cosmos_client.get_database_client(os.getenv("COSMOSDB_DATABASE"))
 container_client = db_client.get_container_client(os.getenv("COSMOSDB_CONTAINER"))
-
-
-class SKAgentActorInterface(ActorInterface):
-    """
-    NOTE must match interface in src/agents/sk_actor.py
-    """
-
-    @actormethod(name="ask")
-    async def ask(self, input_message: str) -> list[dict]: ...
-
-    @actormethod(name="process")
-    async def process(self, input_message: str) -> list[dict]: ...
-
-    @actormethod(name="get_history")
-    async def get_history(self) -> dict: ...
 
 
 def list_actors():
