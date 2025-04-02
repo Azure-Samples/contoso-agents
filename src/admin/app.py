@@ -46,7 +46,7 @@ async def main():
     if order_id is not None:
         doc = container_client.read_item(
             item=order_id,
-            partition_key=order_id,
+            partition_key=order_id.replace("||history", ""),
         )
         state = doc.get("value")
         state = ChatHistory.model_validate(state)
