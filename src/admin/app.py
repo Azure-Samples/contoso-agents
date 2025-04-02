@@ -4,6 +4,9 @@ from semantic_kernel.contents import ChatHistory
 from azure.cosmos import CosmosClient
 from azure.identity import DefaultAzureCredential
 import os
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
 
 # NOTE must use direct connection to CosmosDB for actor state,
 # since Dapr Actors do NOT allow listing all actors
