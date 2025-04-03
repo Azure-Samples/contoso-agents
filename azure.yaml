@@ -29,5 +29,6 @@ hooks:
         run: |
             pip install -r infra/scripts/requirements.txt
             python infra/scripts/setup_cosmos.py
+            python infra/scripts/patch_app_reg.py
         interactive: true
         continueOnError: false

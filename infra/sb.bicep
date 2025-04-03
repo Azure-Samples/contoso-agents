@@ -8,6 +8,9 @@ module sb 'br/public:avm/res/service-bus/namespace:0.11.2' = {
   name: 'sb'
   params: {
     name: '${prefix}-sb-${uniqueId}'
+    skuObject: {
+      name: 'Standard'
+    }
     topics: [
       {
         name: 'orders'
