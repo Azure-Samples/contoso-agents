@@ -1,15 +1,22 @@
 from abc import ABC
 import json
 import os
+import logging
 from dapr.clients import DaprClient
+from azure.identity import DefaultAzureCredential
+from azure.cosmos import CosmosClient
 from .config import config
+
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class DataStore(ABC):
     async def get_data(self, key: str, partition_key: str) -> dict:
         pass
 
-    async def query_data(self, query: object, partition_key) -> list[dict]:
+    async def query_data(self, query: any, partition_key) -> list[dict]:
         pass
 
     async def save_data(self, key: str, partition_key: str, data: dict) -> None:
@@ -26,16 +33,18 @@ class DaprDataStore(DataStore):
                 metadata={"partitionKey": partition_key},
             ).json()
 
-    async def query_data(self, query: object, partition_key: str) -> list[dict]:
+    async def query_data(self, query: any, partition_key: str) -> list[dict]:
         with DaprClient() as client:
             # Query the discount from a hypothetical service using Dapr state
+            # NOTE this is still alpha API and may change in the future
             response = client.query_state(
                 store_name=config.DATA_STORE_NAME,
                 query=json.dumps(query),
                 states_metadata={"partitionKey": partition_key},
             )
+            logger.info(f"Query response: {response.results}")
 
-            return response.results
+            return [item.json() for item in response.results]
 
     async def save_data(self, key: str, partition_key: str, data: dict) -> None:
         with DaprClient() as client:
@@ -46,6 +55,32 @@ class DaprDataStore(DataStore):
                 value=json.dumps(data),
                 metadata={"partitionKey": partition_key},
             )
+
+
+class CosmosDataStore(DataStore):
+    def __init__(self):
+        super().__init__()
+        self.client = CosmosClient(
+            url=config.COSMOSDB_ENDPOINT,
+            credential=DefaultAzureCredential(),
+        )
+        self.database = self.client.get_database_client(config.COSMOSDB_DATABASE)
+        self.container = self.database.get_container_client(
+            config.COSMOSDB_DATA_CONTAINER
+        )
+
+    async def get_data(self, key: str, partition_key: str) -> dict:
+        # Get the discount from a hypothetical service using Dapr state
+        return self.container.read_item(key, partition_key)
+
+    async def query_data(self, query: any, partition_key: str) -> list[dict]:
+        # Query the discount from a hypothetical service using Dapr state
+        response = self.container.query_items(query=query, partition_key=partition_key)
+        return [item for item in response]
+
+    async def save_data(self, key: str, partition_key: str, data: dict) -> None:
+        # Save the discount to a hypothetical service using Dapr state
+        self.container.upsert_item(data)
 
 
 class LocalDataStore(DataStore):
@@ -100,7 +135,8 @@ class LocalDataStore(DataStore):
 def get_data_store() -> DataStore:
     # This function can be modified to return different data store implementations
     # based on the environment or configuration.
-    if config.USE_DAPR:
-        return DaprDataStore()
+    if config.COSMOSDB_ENDPOINT:
+        # return DaprDataStore()
+        return CosmosDataStore()
     else:
         return LocalDataStore()

@@ -1,7 +1,7 @@
 [
   {
     "id": "SKU-A100",
-    "partitionKey": "SKU",
+    "partitionKey": "sku",
     "description": "Sport T shirt",
     "inventory": 100,
     "unit_price": 50.0,
@@ -10,7 +10,7 @@
   {
     "id": "SKU-A102",
     "description": "Hoodie",
-    "partitionKey": "SKU",
+    "partitionKey": "sku",
     "inventory": 0,
     "unit_price": 70.0,
     "substitute": "SKU-A103"
@@ -18,7 +18,7 @@
   {
     "id": "SKU-A103",
     "description": "Hoodie (PFC free)",
-    "partitionKey": "SKU",
+    "partitionKey": "sku",
     "inventory": 50,
     "unit_price": 65.0,
     "substitute": null
@@ -26,7 +26,7 @@
   {
     "id": "SKU-A104",
     "description": "Elephant T-shirt",
-    "partitionKey": "SKU",
+    "partitionKey": "sku",
     "inventory": 20,
     "unit_price": 80.0,
     "substitute": null

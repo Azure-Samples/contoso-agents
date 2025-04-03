@@ -1,3 +1,5 @@
+import logging
+
 from teams import Application, ApplicationOptions
 from teams.state import TurnState
 from botbuilder.core import MemoryStorage, TurnContext, MessageFactory
@@ -8,12 +10,17 @@ from botbuilder.schema import (
     Activity,
     EndOfConversationCodes,
 )
+from botframework.connector.models import ConversationAccount
 from dapr.actor import ActorProxy, ActorId, ActorInterface, actormethod
+from semantic_kernel.contents import ChatMessageContent
 
 # Custom classes to handle errors and claims validation
 from auth import AllowedCallersClaimsValidator
 from adapter import AdapterWithErrorHandler
 from config import config
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # This is required for bot to work as Copilot Skill,
 # not adding a claims validator will result in an error
@@ -55,28 +62,41 @@ class SKAgentActorInterface(ActorInterface):
 @bot.activity("message")
 async def on_message(context: TurnContext, state: TurnState):
     user_message = context.activity.text
+    logger.info("Received message from user: %s", user_message)
+
+    conv: ConversationAccount = context.activity.conversation
 
     proxy: SKAgentActorInterface = ActorProxy.create(
         "SKAgentActor",
         # NOTE: the actor ID is the conversation ID, not the order ID
         # this is because the actor is created for each conversation
-        ActorId(context.activity.conversation["id"]),
+        ActorId(conv.id),
         SKAgentActorInterface,
     )
     response = await proxy.ask(user_message)
+    logger.info("Received response from actor: %s", response)
 
     # Send the response back to the user
     # NOTE in the context of a Copilot Skill,
     # the response is sent as a Response from /api/messages endpoint
-    await context.send_activity(
-        MessageFactory.text(response, input_hint=InputHints.ignoring_input)
-    )
+    for msg in response:
+        # NOTE: the message is a JSON object, so we need to convert it to a string
+        # before sending it as a response
+        chat_message = ChatMessageContent.model_validate(msg)
+        logger.info("Sending message: %s", chat_message.content)
+        await context.send_activity(
+            MessageFactory.text(
+                chat_message.content,
+                input_hint=InputHints.accepting_input,
+            )
+        )
 
     # Skills must send an EndOfConversation activity to indicate the conversation is complete
     # NOTE: this is a simple example, in a real skill you would likely want to send this
     # only when the user has completed their task
     end = Activity.create_end_of_conversation_activity()
     end.code = EndOfConversationCodes.completed_successfully
+    logger.info("Sending end of conversation activity")
     await context.send_activity(end)
 
     return True

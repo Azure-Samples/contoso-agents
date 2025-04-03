@@ -31,8 +31,6 @@ class SKAgentActorInterface(ActorInterface):
 class SKAgentActor(Actor, SKAgentActorInterface):
 
     history: ChatHistory
-    process_agent: Agent
-    chat_agent: Agent
 
     async def _on_activate(self) -> None:
         logger.info(f"Activating actor {self.id}")
@@ -48,9 +46,6 @@ class SKAgentActor(Actor, SKAgentActorInterface):
                 f"No history state found for actor {self.id}. Created new history."
             )
 
-        # NOTE: this is where we inject the agentic team instance
-        self.process_agent = processing_team
-        self.chat_agent = assistant_team
         logger.info(f"Actor {self.id} activated successfully")
 
     async def get_history(self) -> dict:
@@ -62,7 +57,7 @@ class SKAgentActor(Actor, SKAgentActorInterface):
         Ask the agent a question and return the response.
         This method is used to handle user input and return the agent's response.
         """
-        results = await self._invoke_agent(self.chat_agent, input_message)
+        results = await self._invoke_agent(assistant_team, input_message)
 
         # Exclude from results all messages with text "PAUSE"
         # In this implementation, user interruptions are handled by a specifc agent
@@ -77,7 +72,7 @@ class SKAgentActor(Actor, SKAgentActorInterface):
         Process the input message using the agent and return the response.
         This method is used to process order emails
         """
-        return await self._invoke_agent(self.process_agent, input_message)
+        return await self._invoke_agent(processing_team, input_message)
 
     async def _invoke_agent(
         self, agent: Agent, input_message: str
@@ -92,12 +87,13 @@ class SKAgentActor(Actor, SKAgentActorInterface):
                 self.history.add_user_message(input_message)
                 results: list[ChatMessageContent] = []
 
-                async for result in self.process_agent.invoke(history=self.history):
+                async for result in agent.invoke(history=self.history):
                     logger.debug(
                         f"Received result from agent for actor {self.id}: {result}"
                     )
                     results.append(result)
 
+                # TODO move under for loop to save each message as it is received
                 await self._save_history()
 
                 return results

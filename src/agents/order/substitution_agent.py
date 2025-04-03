@@ -14,7 +14,9 @@ class SubstitutionAgentPlugin:
     async def check_availability(
         self, skus_to_check: Annotated[list[str], ""]
     ) -> Annotated[dict[str, int], "A key value pair of SKU=>availability"]:
-        available_skus: list[dict] = await self.data_store.query_data({}, "sku")
+        available_skus: list[dict] = await self.data_store.query_data(
+            "SELECT * FROM c", "sku"
+        )
 
         available_skus_dict = {sku["id"]: sku for sku in available_skus}
         availability = {}
@@ -30,7 +32,7 @@ class SubstitutionAgentPlugin:
     async def get_substitutes(
         self, skus_to_check: Annotated[list[str], ""]
     ) -> dict[str, str]:
-        available_skus = await self.data_store.query_data({}, "sku")
+        available_skus = await self.data_store.query_data("SELECT * FROM c", "sku")
         available_skus_dict = {sku["id"]: sku for sku in available_skus}
 
         substitutes = {}

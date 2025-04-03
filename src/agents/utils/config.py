@@ -22,6 +22,10 @@ class Config:
     USE_DAPR = os.getenv("DAPR_HTTP_PORT", "") != ""
     LOCAL_DATA_FOLDER = os.getenv("LOCAL_DATA_FOLDER", "data/store")
 
+    COSMOSDB_ENDPOINT = os.getenv("COSMOSDB_ENDPOINT")
+    COSMOSDB_DATABASE = os.getenv("COSMOSDB_DATABASE")
+    COSMOSDB_DATA_CONTAINER = os.getenv("COSMOSDB_DATA_CONTAINER")
+
     def validate(self):
         # Validate the configuration
 
@@ -31,10 +35,10 @@ class Config:
                 raise ValueError("PUBSUB_NAME is not set in the environment variables.")
             if not self.TOPIC_NAME:
                 raise ValueError("TOPIC_NAME is not set in the environment variables.")
-            if not self.DATA_STORE_NAME:
-                raise ValueError(
-                    "DATA_STORE_NAME is not set in the environment variables."
-                )
+            # if not self.DATA_STORE_NAME:
+            #     raise ValueError(
+            #         "DATA_STORE_NAME is not set in the environment variables."
+            #     )
         else:
             if not self.LOCAL_DATA_FOLDER:
                 raise ValueError(

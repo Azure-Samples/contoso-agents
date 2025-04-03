@@ -45,7 +45,7 @@ class FulfillmentPlugin:
         Check the availability of a list of SKUs.
         """
         # TODO for real data, build a query to filter
-        facilities = self.data_store.query_data({}, "facility")
+        facilities = self.data_store.query_data("SELECT * FROM c", "facility")
 
         return facilities
 

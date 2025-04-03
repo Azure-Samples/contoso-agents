@@ -243,6 +243,9 @@ resource agentsContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
             { name: 'DATA_STORE_NAME', value: 'data' }
             { name: 'PUBSUB_NAME', value: 'inbox' }
             { name: 'TOPIC_NAME', value: 'orders' }
+            { name: 'COSMOSDB_ENDPOINT', value: cosmosDbEndpoint }
+            { name: 'COSMOSDB_DATABASE', value: cosmosDbDatabaseName }
+            { name: 'COSMOSDB_DATA_CONTAINER', value: dataContainerName }
           ]
         }
       ]
