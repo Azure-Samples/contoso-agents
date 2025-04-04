@@ -6,6 +6,7 @@ from dapr.clients import DaprClient
 from azure.identity import DefaultAzureCredential
 from azure.cosmos import CosmosClient
 from .config import config
+from azure.cosmos.exceptions import CosmosResourceNotFoundError
 
 
 # Configure logging
@@ -70,8 +71,11 @@ class CosmosDataStore(DataStore):
         )
 
     async def get_data(self, key: str, partition_key: str) -> dict:
-        # Get the discount from a hypothetical service using Dapr state
-        return self.container.read_item(key, partition_key)
+
+        try:
+            return self.container.read_item(item=key, partition_key=partition_key)
+        except CosmosResourceNotFoundError:
+            return None
 
     async def query_data(self, query: any, partition_key: str) -> list[dict]:
         # Query the discount from a hypothetical service using Dapr state
@@ -80,6 +84,8 @@ class CosmosDataStore(DataStore):
 
     async def save_data(self, key: str, partition_key: str, data: dict) -> None:
         # Save the discount to a hypothetical service using Dapr state
+        data["id"] = key
+        data["partitionKey"] = partition_key
         self.container.upsert_item(data)
 
 
