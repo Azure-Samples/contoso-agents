@@ -1,8 +1,7 @@
 import logging
-
+import sys
 from collections.abc import AsyncIterable
 from typing import Any, ClassVar
-import sys
 
 if sys.version_info >= (3, 12):
     from typing import override  # pragma: no cover
@@ -10,27 +9,30 @@ else:
     from typing_extensions import override  # pragma: no cover
 
 from semantic_kernel.agents import Agent
-from semantic_kernel.kernel import Kernel
-from semantic_kernel.utils.telemetry.agent_diagnostics.decorators import (
-    trace_agent_invocation,
-    trace_agent_get_response,
-)
+from semantic_kernel.agents.channels.agent_channel import AgentChannel
+from semantic_kernel.agents.channels.chat_history_channel import ChatHistoryChannel
 from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.contents.chat_message_content import ChatMessageContent
-from semantic_kernel.contents.utils.author_role import AuthorRole
 from semantic_kernel.contents.streaming_chat_message_content import (
     StreamingChatMessageContent,
 )
-from semantic_kernel.functions.kernel_arguments import KernelArguments
-from semantic_kernel.agents.channels.agent_channel import AgentChannel
-from semantic_kernel.agents.channels.chat_history_channel import ChatHistoryChannel
+from semantic_kernel.contents.utils.author_role import AuthorRole
 from semantic_kernel.exceptions.agent_exceptions import AgentInvokeException
-
+from semantic_kernel.functions.kernel_arguments import KernelArguments
+from semantic_kernel.kernel import Kernel
+from semantic_kernel.utils.telemetry.agent_diagnostics.decorators import (
+    trace_agent_get_response,
+    trace_agent_invocation,
+)
 from sk_ext.feedback_strategy import FeedbackStrategy
-from sk_ext.planning_strategy import PlanningStrategy
 from sk_ext.merge_strategy import MergeHistoryStrategy
+from sk_ext.planning_strategy import PlanningStrategy
 
 logger = logging.getLogger(__name__)
+
+from rich.console import Console
+
+console = Console()
 
 
 class PlannedTeam(Agent):
@@ -155,8 +157,18 @@ class PlannedTeam(Agent):
                     )
                 )
 
+                # channel.get_history() returns AsyncIterable[ChatMessageContent]
+
+                console.print("\n\n\n", 100*"~")
+                async for m in channel.get_history():
+                    if (m.content is not None) and (m.content.strip() != ""):
+                        console.print(100*">")
+                        console.print(m.content)
+                        console.print(100*"-")
+                console.print(100*"~", "\n\n\n")
+
                 # Then invoke the agent
-                async for is_visible, message in channel.invoke(selected_agent):
+                async for is_visible, message in channel.invoke(selected_agent, messages=local_history):
                     local_history.add_message(message)
 
                     if is_visible and not self.fork_history:
@@ -183,7 +195,7 @@ class PlannedTeam(Agent):
                     local_history.messages
                 )
                 self.is_complete = ok
-
+            
         # Merge the history if needed
         if self.fork_history:
             logger.debug("Merging history after iteration")

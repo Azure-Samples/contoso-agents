@@ -1,18 +1,24 @@
-from sk_ext.team import Team
-from sk_ext.speaker_election_strategy import SpeakerElectionStrategy
-from sk_ext.termination_strategy import UserInputRequiredTerminationStrategy
+import os
+
+from semantic_kernel.functions import KernelFunctionFromPrompt
+from sk_ext.feedback_strategy import KernelFunctionFeedbackStrategy
 from sk_ext.planned_team import PlannedTeam
 from sk_ext.planning_strategy import DefaultPlanningStrategy
-from sk_ext.feedback_strategy import KernelFunctionFeedbackStrategy
-from semantic_kernel.functions import KernelFunctionFromPrompt
-from .price_agent import pricing_agent
-from .fulfillment_agent import fulfillment_agent
-from .validator_agent import validator_agent
-from .substitution_agent import substitution_agent
-from .user import user_agent
+from sk_ext.speaker_election_strategy import SpeakerElectionStrategy
+from sk_ext.team import Team
+from sk_ext.termination_strategy import UserInputRequiredTerminationStrategy
 from utils.config import create_kernel
 
+from .fulfillment_agent import fulfillment_agent
+from .price_agent import pricing_agent
+from .substitution_agent import substitution_agent
+from .user import user_agent
+from .validator_agent import validator_agent
+
+PLANNING_MODEL = os.environ.get("PLANNING_MODEL", "o3-mini")
+
 kernel = create_kernel()
+planning_kernel = create_kernel(PLANNING_MODEL)
 
 # Used in order processing, no HIL
 processing_team = PlannedTeam(
@@ -28,7 +34,7 @@ processing_team = PlannedTeam(
     ],
     kernel=kernel,
     planning_strategy=DefaultPlanningStrategy(
-        kernel=kernel, include_tools_descriptions=True
+        kernel=planning_kernel, include_tools_descriptions=True
     ),
     feedback_strategy=KernelFunctionFeedbackStrategy(
         kernel=kernel,
@@ -47,6 +53,8 @@ The feedback MUST be a JSON object with the following structure:
 - If a delivery schedule was provided, the order processing was successful. Set "should_terminate" to true and leave "feedback" empty.
 - If there were missing information or unresolved issues, the order processing is failed. Set "should_terminate" to true and provide a feedback message explaining the issue.
 - If the processing failed due to temporary failures, or any step can be retried, set "should_terminate" to false and provide a feedback message explaining the issue.
+- If the order was validated and no issues were found, set "should_terminate" to true and leave "feedback" empty.
+
 
 # ORDER TEAM OUTPUT
 {{{{$history}}}}

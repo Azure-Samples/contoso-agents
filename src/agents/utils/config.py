@@ -1,8 +1,9 @@
 import os
+
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dotenv import load_dotenv
-from azure.identity import get_bearer_token_provider, DefaultAzureCredential
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel import Kernel
+from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 
 # Load environment variables from .env file
 load_dotenv(override=True)
@@ -54,12 +55,11 @@ def get_azure_openai_client(deployment_name: str = None):
     """
     Returns an instance of AzureChatCompletion configured with the necessary credentials.
     """
-    return AzureChatCompletion(deployment_name=deployment_name)
+    return AzureChatCompletion(deployment_name=deployment_name, service_id=deployment_name)
 
 
-def create_kernel() -> Kernel:
+def create_kernel(deployment_name: str = None) -> Kernel:
     kernel = Kernel()
-
-    kernel.add_service(get_azure_openai_client())
+    kernel.add_service(get_azure_openai_client(deployment_name))
 
     return kernel
