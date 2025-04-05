@@ -150,6 +150,8 @@ Customer: [Customer Name and ID]
         },
         ...
     ]
+    "comments": "[Any special handling notes]"
+    "failures": "[Detailed list of any failures]"
 }
 ```
 

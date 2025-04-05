@@ -33,6 +33,14 @@
       "color": "White",
       "quantity": 5,
       "unit_price": 100.0
+    },
+    {
+      "sku": "SKU-A114",
+      "description": "Zebra T-shirt",
+      "size": "XXL",
+      "color": "White",
+      "quantity": 5,
+      "unit_price": 100.0
     }
   ]
 }
