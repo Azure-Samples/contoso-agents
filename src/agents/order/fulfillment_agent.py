@@ -161,8 +161,8 @@ class FulfillmentPlugin:
     @kernel_function(description="Record and manage backorders for items that cannot be fulfilled.")
     async def manage_backorders(self, 
                               order_id: Annotated[str, "The unique identifier for the original order"],
-                              backorder_items: Annotated[List[Dict[str, Any]], "List of items that need to be backordered"],
-                              expected_availability_date: Annotated[Optional[str], "Expected date when items will be available (YYYY-MM-DD format)"] = None
+                              backorder_items: Annotated[str, "List of items that need to be backordered. Each item needs to have the following structure: [{sku, quantity, reason}]"],
+                              expected_availability_date: Annotated[str, "Expected date when items will be available (YYYY-MM-DD format)"] = None
                               ) -> Dict[str, Any]:
         """
         Records and manages backorders for items that cannot be fulfilled immediately.
@@ -318,7 +318,9 @@ You MUST provide extremely comprehensive documentation for all fulfillment decis
   * Exact quantities that cannot be delivered
   * Reason for unfulfillability
   * Recommended next steps for backorders
-  * Make sure to manage the backorders processing using the manage_backorders function. 
+  * Backorders are applicable ONLY for VALID SKus that are not available in the inventory.
+  * You **MUST** manage the backorders processing using the manage_backorders() function. You MUST call the function to save the backorders in the data store and return the backorder ID.
+  * If backorders are created, ensure they are linked to the original order ID for tracking
 
 ## ORDER PROBLEM DOCUMENTATION FOR REPLANNING
 When ANY issues or problems are identified with the order that prevent complete fulfillment, you MUST document them with EXTREME DETAIL. This documentation is CRITICAL because:
