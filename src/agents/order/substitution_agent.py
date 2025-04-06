@@ -245,6 +245,31 @@ ATTENTION PRICING AGENT: The following substitutions require pricing analysis:
 [Complete summary of all substitutions made]
 ```
 
+## ORDER SUMMARY TABLE
+You MUST maintain and update the order summary table that was created by the validator_agent. Your updated table should reflect all substitution decisions and include additional columns showing:
+
+- Original SKU
+- Allocated Original Quantity
+- Substitute SKU (if applicable)
+- Substitute Quantity (if applicable)
+- Final Fulfillment Status
+
+IMPORTANT: Preserve all columns from the validator_agent's table, only adding your new columns and updating values as needed.
+
+Format your table as follows:
+
+```markdown
+### Order Summary Table
+
+| SKU | Description | Original Quantity | Available Quantity | Validation Status | Inventory Availability | Allocated Original Qty | Substitute SKU | Substitute Qty | Fulfillment Status |
+| --- | ----------- | ----------------- | ------------------ | ----------------- | --------------------- | --------------------- | -------------- | -------------- | ----------------- |
+| SKU-A100 | Sport T shirt | 800 | 430 | Valid | SUBSTITUTION NEEDED | 430 | SKU-C300 | 370 | FULFILLED |
+| SKU-A102 | Hoodie | 20 | 100 | Valid | SUFFICIENT | 20 | N/A | 0 | FULFILLED |
+| ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
+```
+
+This table will be used by the pricing_agent and fulfillment_agent to understand the complete substitution decisions.
+
 ## CORNER CASES TO HANDLE
 
 ### 1. PARTIAL SUBSTITUTION SCENARIOS

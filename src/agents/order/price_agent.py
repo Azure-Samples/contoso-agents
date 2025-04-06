@@ -248,6 +248,30 @@ Date: [Current Date]
 [Any additional pricing considerations or exceptions]
 ```
 
+## ORDER SUMMARY TABLE
+You MUST maintain and update the order summary table that was created by previous agents. Your updated table should add pricing information columns while preserving all existing columns. Add the following columns:
+
+- Standard Unit Price
+- Final Unit Price (after discounts/customer pricing)
+- Discount Applied (%)
+- Line Total
+
+IMPORTANT: Preserve all columns from the substitution agent's table, only adding your new columns and updating values as needed.
+
+Format your table as follows:
+
+```markdown
+### Order Summary Table
+
+| SKU | Description | Original Quantity | Available Quantity | Validation Status | Inventory Availability | Allocated Original Qty | Substitute SKU | Substitute Qty | Fulfillment Status | Standard Unit Price | Final Unit Price | Discount Applied | Line Total |
+| --- | ----------- | ----------------- | ------------------ | ----------------- | --------------------- | --------------------- | -------------- | -------------- | ----------------- | ------------------ | --------------- | --------------- | ---------- |
+| SKU-A100 | Sport T shirt | 800 | 430 | Valid | SUBSTITUTION NEEDED | 430 | SKU-C300 | 370 | FULFILLED | $10.00 | $9.50 | 5% | $7,600.00 |
+| SKU-C300 | Sport T shirt V2 | 370 | 750 | N/A | N/A | N/A | N/A | N/A | N/A | $10.50 | $9.50 | 0% | $3,515.00 |
+| ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
+```
+
+This table will be used by the fulfillment_agent to understand the complete pricing decisions and calculate final order totals.
+
 ## CORNER CASES TO HANDLE
 
 ### 1. COMPETING DISCOUNT SCENARIOS

@@ -214,6 +214,29 @@ Customer: [Customer Name and ID]
 [If valid] VALIDATION TIMESTAMP: [Current timestamp]
 ```
 
+## ORDER SUMMARY TABLE
+You MUST include a markdown table at the end of your response that summarizes the validation status of each item in the order. This table will be passed to other agents and updated throughout the order processing workflow.
+
+Your table should include:
+- SKU ID
+- Description 
+- Original Quantity
+- Available Quantity
+- Validation Status (Valid, Invalid, Substitution Required)
+- Any additional relevant validation information
+
+Format your table as follows:
+
+```markdown
+### Order Summary Table
+
+| SKU | Description | Original Quantity | Available Quantity | Validation Status | Inventory Availability |
+| --- | ----------- | ----------------- | ------------------ | ----------------- | --------------------- |
+| SKU-A100 | Sport T shirt | 800 | 430 | Valid | SUBSTITUTION NEEDED |
+| SKU-A102 | Hoodie | 20 | 100 | Valid | SUFFICIENT |
+| ... | ... | ... | ... | ... | ... |
+```
+
 ## SUBSTITUTION AGENT HANDOFF
 Remember that your output will be used by the substitution_agent to handle any inventory shortages. When you flag items with insufficient quantity:
 
