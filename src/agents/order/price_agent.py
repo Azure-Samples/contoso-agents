@@ -8,7 +8,6 @@ from utils.store import get_data_store
 
 logger = logging.getLogger(__name__)
 
-
 class PricingAgentPlugin:
     """
     Plugin for pricing-related functionality. 
@@ -156,6 +155,39 @@ class PricingAgentPlugin:
         return result
 
 
+    @kernel_function(
+        name="calculate_order_total",
+        description="Calculate the total price for an entire order from line item totals."
+    )
+    def calculate_order_total(
+        self,
+        line_totals: Annotated[list[int], "List of line item total amounts"]
+    ) -> Annotated[dict, "Order total calculation details"]:
+        """
+        Calculate the total price for an entire order by summing line item totals.
+        
+        Args:
+            line_totals: List of line item total amounts
+            
+        Returns:
+            A dictionary with order total calculation details
+        """
+        # Calculate order subtotal
+        subtotal = sum(line_totals)
+        
+        # Round to 2 decimal places
+        subtotal = round(subtotal, 2)
+        
+        result = {
+            "line_items_count": len(line_totals),
+            "line_totals": line_totals,
+            "order_subtotal": subtotal,
+        }
+        
+        logger.info(f"Order total calculation: {result}")
+        return result
+
+
 pricing_agent = ChatCompletionAgent(
     id="pricing_agent",
     name="PricingAgent",
@@ -202,6 +234,7 @@ You MUST provide extremely comprehensive pricing documentation for every SKU in 
 
 ### 5. FINAL PRICING CALCULATION
 - Calculate the final price for each line item with all applicable discounts
+- Make sure to calculate ONLY the available quantity of each SKU, taking into account any substitutions. The original order quantities might NOT be valid after substitutions.
 - Calculate order subtotal, tax (if applicable), and grand total
 - Provide a clear summary of all price adjustments made
 - Document the total customer savings from all discounts and special pricing
