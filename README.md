@@ -7,6 +7,10 @@ This is sample application for the Contoso Agents project, which demonstrates ho
 - Autonomous agents process incoming orders via email
 - User can the review and approve orders interacting with the agents over Copilot Studio or Teams
 
+## Technical overview
+
+If you are interested in the technical details of the project, a comprehensive overview of the architecture and design decisions can be found in the [Technical Overview](docs/technical-overview.md) document.
+
 ## Getting Started
 
 ### Prerequisites

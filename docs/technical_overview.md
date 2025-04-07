@@ -1,0 +1,80 @@
+# Technical Overview of Contoso Agents
+
+The Contoso Agents repository implements an autonomous order processing system leveraging Azure services, Semantic Kernel, and AI-driven agents. It automates order handling, validation, substitution, pricing, and fulfillment, providing a comprehensive audit trail and user interaction via Copilot Studio or Microsoft Teams.
+
+## Architecture Overview
+
+The architecture follows a modular, event-driven approach leveraging Azure services and Dapr for state management and communication:
+
+```mermaid
+flowchart TD
+    %% Row 1: Order Initiation
+    A[Email / Blob Trigger] --> B[Azure Logic Apps]
+    B --> C["Service Bus (PubSub)"]
+
+    %% Row 2: Processing and Decision Making
+    C --> D["Autonomous Agents (Dapr Actor)"]
+    D -- Uses --> F["Cosmos DB (State + Data)"]
+    D -- Uses --> E[Azure OpenAI Service]
+    D -- Deployed on --> I[Azure Container Apps]
+
+    %% Row 3: User Interaction
+    I -- /api/messages --> G[Azure Bot Service]
+    G -- Skill --> H[Copilot Studio / Teams]
+```
+
+The architecture follows an event-driven, microservices-based approach:
+
+- **Event Triggers**: Orders are initiated via email or blob storage events, processed by Azure Logic Apps.
+- **Pub/Sub Messaging**: Azure Service Bus (via Dapr) facilitates communication between Logic Apps and autonomous agents.
+- **Autonomous Agents**: Each agent performs specialized tasks (validation, substitution, pricing, fulfillment, review) using Azure OpenAI models for intelligent decision-making.
+- **Data Persistence**: Cosmos DB stores state and order data, accessed via Dapr state management.
+- **User Interaction**: Users interact with the system through Copilot Studio or Microsoft Teams, facilitated by Azure Bot Service.
+
+## Main Components
+
+### Autonomous Agents (`src/agents`)
+
+Located in the agents directory, these agents handle specific tasks in the order processing workflow:
+
+- **Validator Agent** (`validator_agent.py`): Validates orders against inventory and business rules.
+- **Substitution Agent** (`substitution_agent.py`): Checks inventory availability and suggests product substitutions.
+- **Pricing Agent** (`price_agent.py`): Applies pricing rules, discounts, and customer-specific pricing.
+- **Fulfillment Agent** (`fulfillment_agent.py`): Finalizes orders, schedules deliveries, and allocates inventory from optimal facilities.
+- **Reviewer Agent** (`reviewer_agent.py`): Performs final quality checks, ensuring compliance with business rules and documenting any exceptions.
+
+> [!IMPORTANT]
+> The agents are assembled in two different ways:
+>
+> - `processing_team` using a `PlannedTeam` orchestrator, which is a single agent that handles the entire order processing workflow and can iterate over providing feedback to the other agents.
+> - `assistant_team` using a `Team` orchestrator, which instead uses a _speaker election_ approach to determine which agent should be the next to support the user in a human-in-the-loop scenario.
+
+Either way, both teams are implemented as Dapr actors, which allows them to be deployed as microservices in Azure Container Apps and manage conversation state natively.
+
+### User Interaction (`src/skill`)
+
+Human-in-the-loop interaction is facilitated through the `skill` directory, which contains the **Azure Bot Service skill** implementation and integration with Copilot Studio (which can puslish to Microsoft Teams)
+
+> [!NOTE]
+> It is key to note human-in-the-loop interaction is not expected at first, since the initial processing is fully autonomous. HIL is only used for review and exception handling.
+
+### Admin dashboard (`src/admin`)
+
+A sample Streamlit application is provided in the `admin` directory for monitoring and managing the agents. It allows users to view order statuses, agent performance, and system logs.
+
+### Data Storage
+
+The application uses Azure Cosmos DB for persistent storage, configured via Dapr components in .dapr:
+
+- **Cosmos DB**: Stores order data, conversation state, and inventory information.
+- **Dapr Components**: Defined in YAML files like `cosmos_data.yml` and `statestore.yml`, enabling state management and pub/sub messaging.
+
+### Azure Infrastructure
+
+Defined in the infra directory using Bicep templates:
+
+- **Azure Container Apps (ACA)** (`aca.bicep`): Hosts the agents, skill, and admin applications.
+- **Azure Container Registry (ACR)** (`acr.bicep`): Stores container images.
+- **Azure Cognitive Services (OpenAI)** (`openAI.bicep`): Provides AI models for agent decision-making.
+- **Azure Logic Apps** (`logicapp.bicep`): Automates workflows triggered by emails and blob storage events.
+- **Azure Application Insights** (`appin.bicep`): Monitors application performance and logs.
