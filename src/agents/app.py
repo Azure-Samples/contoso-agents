@@ -13,8 +13,6 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 # Configure logging
 logger = logging.getLogger(__name__)
 tracing.set_up_logging()
-# tracing.set_up_tracing()
-# tracing.set_up_metrics()
 
 actor: DaprActor = None
 
@@ -44,9 +42,6 @@ async def process_new_order(req: Request):
     """
     try:
         body = await req.body()
-        # Print body and headers for debugging
-        logger.info(f"Received body: {body}")
-        logger.info(f"Received headers: {req.headers}")
 
         event = from_http(req.headers, body)
         data = event.data

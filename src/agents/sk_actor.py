@@ -51,7 +51,7 @@ class SKAgentActor(Actor, SKAgentActorInterface):
         logger.debug(f"Getting conversation history for actor {self.id}")
         return self.history.model_dump()
 
-    async def ask(self, input_message: str) -> list[ChatMessageContent]:
+    async def ask(self, input_message: str) -> list[dict]:
         """
         Ask the agent a question and return the response.
         This method is used to handle user input and return the agent's response.
@@ -66,12 +66,15 @@ class SKAgentActor(Actor, SKAgentActorInterface):
 
         return results
 
-    async def process(self, input_message: str) -> list[ChatMessageContent]:
+    async def process(self, input_message: str) -> list[dict]:
         """
         Process the input message using the agent and return the response.
         This method is used to process order emails
         """
-        return await self._invoke_agent(processing_team, input_message)
+        results = await self._invoke_agent(processing_team, input_message)
+        results = [msg.model_dump() for msg in results]
+
+        return results
 
     async def _invoke_agent(
         self, agent: Agent, input_message: str
