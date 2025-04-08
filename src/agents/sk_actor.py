@@ -5,7 +5,6 @@ from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.contents.chat_message_content import ChatMessageContent
 from semantic_kernel.agents import Agent
 from order.order_team import processing_team, assistant_team
-from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # Ensure logging level is set as required
@@ -77,31 +76,26 @@ class SKAgentActor(Actor, SKAgentActorInterface):
     async def _invoke_agent(
         self, agent: Agent, input_message: str
     ) -> list[ChatMessageContent]:
-        tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("sk_actor._invoke_agent") as span:
-            span.set_attribute("operation_Id", str(self.id))
-            try:
-                logger.info(
-                    f"Invoking actor {self.id} with input message: {input_message}"
+        try:
+            logger.info(f"Invoking actor {self.id} with input message: {input_message}")
+            self.history.add_user_message(input_message)
+            results: list[ChatMessageContent] = []
+
+            async for result in agent.invoke(history=self.history):
+                logger.debug(
+                    f"Received result from agent for actor {self.id}: {result}"
                 )
-                self.history.add_user_message(input_message)
-                results: list[ChatMessageContent] = []
+                results.append(result)
 
-                async for result in agent.invoke(history=self.history):
-                    logger.debug(
-                        f"Received result from agent for actor {self.id}: {result}"
-                    )
-                    results.append(result)
+            # TODO move under for loop to save each message as it is received
+            await self._save_history()
 
-                # TODO move under for loop to save each message as it is received
-                await self._save_history()
-
-                return results
-            except Exception as e:
-                logger.error(
-                    f"Error occurred in ask for actor {self.id}: {e}", exc_info=True
-                )
-                raise
+            return results
+        except Exception as e:
+            logger.error(
+                f"Error occurred in ask for actor {self.id}: {e}", exc_info=True
+            )
+            raise
 
     async def _save_history(self) -> None:
         """

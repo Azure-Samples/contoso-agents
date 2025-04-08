@@ -89,7 +89,7 @@ module emailLogicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
   name: 'email-trigger-logicapp'
   params: {
     name: '${prefix}-email-${uniqueId}'
-    location: location
+    location: location    
     managedIdentities: { userAssignedResourceIds: [userAssignedIdentityResourceId] }
     diagnosticSettings: [
       {

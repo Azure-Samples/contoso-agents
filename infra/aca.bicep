@@ -41,6 +41,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-11-02-preview' 
     }
   }
   properties: {
+    daprAIConnectionString: applicationInsightsConnectionString    
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {

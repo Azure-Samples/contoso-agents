@@ -8,10 +8,11 @@ from azure.monitor.opentelemetry.exporter import (
     AzureMonitorMetricExporter,
     AzureMonitorTraceExporter,
 )
+from azure.monitor.opentelemetry import configure_azure_monitor
 
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.metrics import set_meter_provider
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs import LoggerProvider
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
@@ -30,8 +31,18 @@ service_name = os.getenv("APPLICATIONINSIGHTS_SERVICE_NAME", "agents")
 resource = Resource.create({ResourceAttributes.SERVICE_NAME: service_name})
 
 
+# Suppress health probe logs from the Uvicorn access logger
+# Dapr runtime calls it frequently and pollutes the logs
+class HealthProbeFilter(logging.Filter):
+    def filter(self, record):
+        # Suppress log messages containing the health probe request
+        return (
+            "/health" not in record.getMessage()
+            and "/healthz" not in record.getMessage()
+        )
+
+
 def set_up_logging():
-    logging.warning(f"Connection string: {connection_string}")
     exporter = AzureMonitorLogExporter.from_connection_string(connection_string)
 
     # Create and set a global logger provider for the application.
@@ -43,15 +54,24 @@ def set_up_logging():
     set_logger_provider(logger_provider)
 
     # Create a logging handler to write logging records, in OTLP format, to the exporter.
-    handler = LoggingHandler()
-    # Add filters to the handler to only process records from semantic_kernel.
-    handler.addFilter(logging.Filter("semantic_kernel"))
-    # Attach the handler to the root logger. `getLogger()` with no arguments returns the root logger.
-    # Events from all child loggers will be processed by this handler.
-    logger = logging.getLogger()
-    logger.addHandler(handler)
-    # TODO check how to keep console logging less verbose without limiting remote traces
-    # logger.setLevel(logging.INFO)
+    # handler = LoggingHandler()
+    # # Add filters to the handler to only process records from semantic_kernel.
+    # handler.addFilter(logging.Filter("semantic_kernel"))
+    # # Attach the handler to the root logger. `getLogger()` with no arguments returns the root logger.
+    # # Events from all child loggers will be processed by this handler.
+    # logger = logging.getLogger()
+    # logger.addHandler(handler)
+
+    # Global logging configuration
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger("sk_ext").setLevel(logging.DEBUG)
+    logging.getLogger("azure").setLevel(logging.WARNING)
+
+    # Add the filter to the Uvicorn access logger
+    uvicorn_access_logger = logging.getLogger("uvicorn.access")
+    uvicorn_access_logger.addFilter(HealthProbeFilter())
+
+    configure_azure_monitor(connection_string=connection_string, resource=resource)
 
 
 def set_up_tracing():
