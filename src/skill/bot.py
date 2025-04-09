@@ -18,6 +18,8 @@ from semantic_kernel.contents import ChatMessageContent
 from auth import AllowedCallersClaimsValidator
 from adapter import AdapterWithErrorHandler
 from config import config
+import re
+from botbuilder.core.re_escape import escape
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -28,6 +30,35 @@ claims_validator = AllowedCallersClaimsValidator(config)
 auth = AuthenticationConfiguration(
     tenant_id=config.APP_TENANTID, claims_validator=claims_validator.claims_validator
 )
+
+
+# This is a workaround to clear a known issue with the Bot Framework SDK
+# Fix exists but not yet released in the SDK
+# See https://github.com/microsoft/botbuilder-python/pull/2216
+@staticmethod
+def patched_remove_mention_text(activity: Activity, identifier: str) -> str:
+    mentions = TurnContext.get_mentions(activity)
+    for mention in mentions:
+        if mention.additional_properties["mentioned"]["id"] == identifier:
+            replace_text = (
+                mention.additional_properties.get("text")
+                or mention.additional_properties.get("mentioned")["name"]
+            )
+            mention_name_match = re.match(
+                r"<at(.*)>(.*?)<\/at>",
+                escape(replace_text),
+                re.IGNORECASE,
+            )
+            if mention_name_match:
+                activity.text = re.sub(
+                    mention_name_match.groups()[1], "", activity.text
+                )
+                activity.text = re.sub(r"<at><\/at>", "", activity.text)
+    return activity.text
+
+
+# Monkey patch the remove_mention_text method to use the patched version
+TurnContext.remove_mention_text = patched_remove_mention_text
 
 # Create the bot application
 # We use the Teams Application class to create the bot application,
@@ -91,12 +122,13 @@ async def on_message(context: TurnContext, state: TurnState):
             )
         )
 
-    # Skills must send an EndOfConversation activity to indicate the conversation is complete
-    # NOTE: this is a simple example, in a real skill you would likely want to send this
-    # only when the user has completed their task
-    end = Activity.create_end_of_conversation_activity()
-    end.code = EndOfConversationCodes.completed_successfully
-    logger.info("Sending end of conversation activity")
-    await context.send_activity(end)
+    if context.activity.channel_id != "msteams":
+        # Skills must send an EndOfConversation activity to indicate the conversation is complete
+        # NOTE: this is a simple example, in a real skill you would likely want to send this
+        # only when the user has completed their task
+        end = Activity.create_end_of_conversation_activity()
+        end.code = EndOfConversationCodes.completed_successfully
+        logger.info("Sending end of conversation activity")
+        await context.send_activity(end)
 
     return True

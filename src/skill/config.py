@@ -33,7 +33,7 @@ class Config:
             )
         if not self.APP_ID or not self.APP_PASSWORD or not self.APP_TENANTID:
             raise Exception(
-                "Missing required configuration. APP_ID, APP_PASSWORD, and APP_TENANT_ID must be set."
+                "Missing required configuration. BOT_APP_ID, BOT_PASSWORD, and BOT_TENANT_ID must be set."
             )
         if not self.ALLOWED_CALLERS:
             raise Exception(

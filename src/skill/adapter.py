@@ -30,7 +30,8 @@ class AdapterWithErrorHandler(CloudAdapter):
         print(f"\n [on_turn_error] unhandled error: {error}", file=sys.stderr)
         traceback.print_exc()
         await self._send_error_message(turn_context, error)
-        await self._send_eoc_to_parent(turn_context, error)
+        if turn_context.activity.channel_id != "msteams":
+            await self._send_eoc_to_parent(turn_context, error)
 
     async def _send_error_message(self, turn_context: TurnContext, error: Exception):
         try:
