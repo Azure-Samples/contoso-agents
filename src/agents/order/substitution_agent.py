@@ -121,7 +121,7 @@ class SubstitutionAgentPlugin:
 substitution_agent = ChatCompletionAgent(
     id="substitution_agent",
     name="SubstitutionAgent",
-    description="An agent that checks the availability of SKUs and suggests substitutes.",
+    description="Checks the availability of SKUs and suggests substitutes when not available.",
     instructions="""
 # SUBSTITUTION AGENT - COMPREHENSIVE INSTRUCTIONS
 

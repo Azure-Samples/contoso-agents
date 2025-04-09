@@ -310,7 +310,7 @@ class FulfillmentPlugin:
 fulfillment_agent = ChatCompletionAgent(
     id="fulfillment_agent",
     name="OrderFulfillmentAgent",
-    description="An agent that helps with order fulfillment tasks. Can provide order status, finalize an order and build a delivery schedule.",
+    description="Helps with order fulfillment tasks. Can provide order status, update or finalize an order and build a delivery schedule.",
     instructions="""
 # ORDER FULFILLMENT AGENT - COMPREHENSIVE INSTRUCTIONS
 

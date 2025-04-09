@@ -104,7 +104,7 @@ class ValidationPlugin:
 validator_agent = ChatCompletionAgent(
     id="validator_agent",
     name="OrderValidator",
-    description="Validates orders and checks for errors.",
+    description="Validates orders checking for errors.",
     instructions="""
 # ORDER VALIDATION AGENT - COMPREHENSIVE INSTRUCTIONS
 

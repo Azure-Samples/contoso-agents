@@ -207,7 +207,7 @@ class PricingAgentPlugin:
 pricing_agent = ChatCompletionAgent(
     id="pricing_agent",
     name="PricingAgent",
-    description="This agent analyzes order pricing, applies discounts and customer-specific pricing, and provides detailed price breakdowns.",
+    description="Can check SKU pricing, apply discounts and customer-specific pricing, and provides detailed price breakdowns.",
     instructions="""
 # PRICING AGENT - COMPREHENSIVE INSTRUCTIONS
 
