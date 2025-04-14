@@ -9,11 +9,17 @@ from sk_ext.team import Team
 from sk_ext.termination_strategy import UserInputRequiredTerminationStrategy
 from utils.config import create_kernel
 
-from .fulfillment_agent import fulfillment_agent
-from .price_agent import pricing_agent
-from .substitution_agent import substitution_agent
-from .user import user_agent
-from .validator_agent import validator_agent
+from .processing.fulfillment_agent import fulfillment_agent
+from .processing.price_agent import pricing_agent
+from .processing.substitution_agent import substitution_agent
+from .processing.validator_agent import validator_agent
+
+from .chat.chat_user import chat_user_agent
+from .chat.chat_fulfillment_agent import chat_fulfillment_agent
+from .chat.chat_price_agent import chat_pricing_agent
+from .chat.chat_substitution_agent import chat_substitution_agent
+from .chat.chat_validator_agent import chat_validator_agent
+
 
 PLANNING_MODEL = os.environ.get("PLANNING_MODEL", "o3-mini")
 
@@ -69,15 +75,15 @@ assistant_team = Team(
     name="OrderAssistantTeam",
     description="Order Assistant Team",
     agents=[
-        pricing_agent,
-        validator_agent,
-        substitution_agent,
-        fulfillment_agent,
-        user_agent,  # NOTE: user agent is not used in the processing team
+        chat_pricing_agent,
+        chat_validator_agent,
+        chat_substitution_agent,
+        chat_fulfillment_agent,
+        chat_user_agent,  # NOTE: user agent is not used in the processing team
     ],
     kernel=kernel,
     selection_strategy=SpeakerElectionStrategy(
         kernel=kernel, include_tools_descriptions=True
     ),
-    termination_strategy=UserInputRequiredTerminationStrategy(stop_agents=[user_agent]),
+    termination_strategy=UserInputRequiredTerminationStrategy(stop_agents=[chat_user_agent]),
 )
