@@ -39,8 +39,8 @@ async def main():
     st.title("Orders Debugging")
 
     # New Notification Test Section
-    st.sidebar.header("Notification Test")
-    st.write("## Notification Test Section")
+    st.sidebar.header("Options")
+    st.sidebar.write("## Notification Test")
     # Define a list of default users
     default_users = [
         {"id": "558e61f5-bfbc-4836-b945-78563b508dcc", "displayName": "Riccardo Chiodaroli"},
@@ -48,19 +48,21 @@ async def main():
         {"id": "7e720380-2366-499e-aea3-f98537fbe1c2", "displayName": "Samer El Housseini"},
         {"id": "00a54c92-6c33-42f0-9fae-6858286375d4", "displayName": "Daniel Labbe"},
     ]
-    selected_user = st.selectbox(
-        "Select a Default User",
+    selected_user = st.sidebar.selectbox(
+        "Select a User",
         default_users,
         format_func=lambda u: f"{u['displayName']} ({u['id']})"
     )
-    if st.button("Send Notification"):
-        result = await send_notification(selected_user['id'])
-        st.success(result)
+    if st.sidebar.button("Send Notification"):
+        await send_notification(selected_user['id'])
+        st.success('Notification sent!')
 
-    st.sidebar.header("Query Settings")
+    st.sidebar.write("## Query Order Process History")
     order_id = st.sidebar.selectbox(
         "Select Order", actor_list, format_func=lambda x: x.split("||")[2]
     )
+
+    # Main content
     st.write(f"### Selected Order ID: {order_id}")
 
     if order_id is not None:
@@ -97,7 +99,7 @@ class UserActorInterface(ActorInterface):
 
 async def send_notification(user_id: str):
     # Use Dapr UserActor proxy to send a notification
-    proxy: UserActorInterface = ActorProxy.create("UserActorInterface", ActorId(user_id), UserActorInterface)
+    proxy: UserActorInterface = ActorProxy.create("UserActor", ActorId(user_id), UserActorInterface)
     await proxy.notify("This is a test notification.")
 
 
