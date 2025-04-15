@@ -12,7 +12,7 @@
       },
       "method": "post",
       "body": {
-        "ContentData": "@base64(concat('{','\n','\"specversion\": \"1.0\",','\n','\"type\": \"com.dapr.event.sent\",','\n','\"source\": \"blob-logic-app\",','\n','\"id\": \"',guid(),'\",','\n','\"time\": \"',utcNow(),'\",','\n','\"datacontenttype\": \"application/json\",','\n','\"data\": {  \"order_id\": \"',concat('order_', utcNow()),'\", \"input\": ',replace(replace(replace(body('Parse_as_JSON')['choices'][0]['message']['content'], '```json', ''), '```', ''), '\n',''),'}','\n','}'))",
+        "ContentData": "@base64(concat('{','\n','\"specversion\": \"1.0\",','\n','\"type\": \"com.dapr.event.sent\",','\n','\"source\": \"blob-logic-app\",','\n','\"id\": \"',guid(),'\",','\n','\"time\": \"',utcNow(),'\",','\n','\"datacontenttype\": \"application/json\",','\n','\"data\": {  \"order_id\": \"',concat('order_', formatDateTime(utcNow(), 'YYYYMMDDHHmmss')),'\", \"input\": ',replace(replace(replace(body('Parse_as_JSON')['choices'][0]['message']['content'], '```json', ''), '```', ''), '\n',''),'}','\n','}'))",
         "Properties": {
           "type": "trigger"
         }

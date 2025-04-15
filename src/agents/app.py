@@ -3,8 +3,8 @@ import logging
 from dapr.ext.fastapi import DaprApp, DaprActor
 from dapr.actor import ActorProxy, ActorId
 from contextlib import asynccontextmanager
-from dapr.clients import DaprClient
-from sk_actor import SKAgentActor, SKAgentActorInterface
+from actors.processing_actor import ProcessingActor, ProcessingActorInterface
+from actors.user_actor import UserActor, UserActorInterface
 from fastapi import FastAPI, Request
 from utils.config import config
 from cloudevents.http import from_http
@@ -21,7 +21,8 @@ actor: DaprActor = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Registering actor")
-    await actor.register_actor(SKAgentActor)
+    await actor.register_actor(ProcessingActor)
+    await actor.register_actor(UserActor)
     yield
 
 
@@ -48,18 +49,15 @@ async def process_new_order(req: Request):
         order_id = data["order_id"]
         logger.info(f"Received order input (ID {order_id}): {data}")
 
-        proxy: SKAgentActorInterface = ActorProxy.create(
-            "SKAgentActor", ActorId(f"process_{order_id}"), SKAgentActorInterface
+        proxy: ProcessingActorInterface = ActorProxy.create(
+            "ProcessingActor", ActorId(f"{order_id}"), ProcessingActorInterface
         )
         await proxy.process(f"Process order {order_id} with data\n\n{data}")
 
-        with DaprClient() as client:
-            client.publish_event(
-                pubsub_name=config.PUBSUB_NAME,
-                topic_name=config.TOPIC_NAME,
-                data={"order_id": order_id},
-                publish_metadata={"type": "approval"},
-            )
+        user_proxy: UserActorInterface = ActorProxy.create(
+            "UserActor", ActorId("558e61f5-bfbc-4836-b945-78563b508dcc"), UserActorInterface
+        )
+        await user_proxy.notify(f"New order {order_id} received and processed", from_user="order_team")
 
         return {"status": "SUCCESS"}
     except Exception as e:

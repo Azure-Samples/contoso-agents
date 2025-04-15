@@ -94,7 +94,6 @@ async def manifest_teams(req: Request):
     # Return the response
     return response
 
-
 APP = web.Application()
 APP.router.add_post("/api/messages", messages)
 APP.router.add_get("/manifest", copilot_manifest)

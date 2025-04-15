@@ -2,15 +2,15 @@ import logging
 
 from teams import Application, ApplicationOptions
 from teams.state import TurnState
-from botbuilder.core import MemoryStorage, TurnContext, MessageFactory
+from botbuilder.core import MemoryStorage, TurnContext, MessageFactory, CardFactory
 from botframework.connector.auth import AuthenticationConfiguration
 from botbuilder.integration.aiohttp import ConfigurationBotFrameworkAuthentication
 from botbuilder.schema import (
     InputHints,
     Activity,
+    ActivityTypes,
     EndOfConversationCodes,
 )
-from botframework.connector.models import ConversationAccount
 from dapr.actor import ActorProxy, ActorId, ActorInterface, actormethod
 from semantic_kernel.contents import ChatMessageContent
 
@@ -75,35 +75,29 @@ bot = Application[TurnState](
 )
 
 
-class SKAgentActorInterface(ActorInterface):
-    """
-    NOTE must match interface in src/agents/sk_actor.py
-    """
-
+class UserActorInterface(ActorInterface):
     @actormethod(name="ask")
     async def ask(self, input_message: str) -> list[dict]: ...
-
-    @actormethod(name="process")
-    async def process(self, input_message: str) -> list[dict]: ...
 
     @actormethod(name="get_history")
     async def get_history(self) -> dict: ...
 
+    @actormethod(name="bind_conversation")
+    async def bind_conversation(self, conversation_id: str) -> None: ...
 
-@bot.activity("message")
+    @actormethod(name="unbind_conversation")
+    async def unbind_conversation(self, conversation_id: str) -> None: ...
+
+    @actormethod(name="notify")
+    async def notify(self, message: dict) -> None: ...
+
+
+@bot.activity(ActivityTypes.message)
 async def on_message(context: TurnContext, state: TurnState):
     user_message = context.activity.text
     logger.info("Received message from user: %s", user_message)
 
-    conv: ConversationAccount = context.activity.conversation
-
-    proxy: SKAgentActorInterface = ActorProxy.create(
-        "SKAgentActor",
-        # NOTE: the actor ID is the conversation ID, not the order ID
-        # this is because the actor is created for each conversation
-        ActorId(conv.id),
-        SKAgentActorInterface,
-    )
+    proxy = create_user_actor_proxy(context)
     response = await proxy.ask(user_message)
     logger.info("Received response from actor: %s", response)
 
@@ -116,8 +110,19 @@ async def on_message(context: TurnContext, state: TurnState):
         chat_message = ChatMessageContent.model_validate(msg)
         logger.info("Sending message: %s", chat_message.content)
         await context.send_activity(
-            MessageFactory.text(
-                chat_message.content,
+            MessageFactory.attachment(CardFactory.adaptive_card(
+                {
+                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                    "type": "AdaptiveCard",
+                    "version": "1.3",
+                    "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": chat_message.content,
+                                "wrap": True
+                            }
+                    ]
+                }),
                 input_hint=InputHints.accepting_input,
             )
         )
@@ -132,3 +137,41 @@ async def on_message(context: TurnContext, state: TurnState):
         await context.send_activity(end)
 
     return True
+
+
+@bot.activity(ActivityTypes.installation_update)
+async def on_installation_update(context: TurnContext, state: TurnState):
+    """
+    Handle installation updates for the bot.
+    This is called when the bot is installed or uninstalled, allowing us to
+    persist the user ID and conversation ID in the Dapr Actor store.
+    """
+    action = context.activity.action
+    from_user = context.activity.from_property.id
+    logger.info(f"Received installation update: {action} from user {from_user}")
+
+    proxy = create_user_actor_proxy(context)
+
+    if action == "add":
+        await proxy.bind_conversation(context.activity.conversation.id)
+
+    elif action == "remove":
+        await proxy.unbind_conversation(context.activity.conversation.id)
+
+    else:
+        logger.warning(f"Unknown action: {action}")
+
+
+def create_user_actor_proxy(context: TurnContext) -> UserActorInterface:
+    """
+    Create a proxy to the UserActor using the user ID as the actor ID.
+    """
+    proxy: UserActorInterface = ActorProxy.create(
+        "UserActor",
+        # NOTE: the actor ID is the user ID, not the order ID
+        # this is because the actor is created for each user
+        ActorId(context.activity.from_property.id),
+        UserActorInterface,
+    )
+
+    return proxy

@@ -23,6 +23,9 @@ class DataStore(ABC):
     async def save_data(self, key: str, partition_key: str, data: dict) -> None:
         pass
 
+    async def delete_data(self, key: str, partition_key: str) -> None:
+        pass
+
 
 class DaprDataStore(DataStore):
     async def get_data(self, key: str, partition_key: str) -> dict:
@@ -57,6 +60,15 @@ class DaprDataStore(DataStore):
                 metadata={"partitionKey": partition_key},
             )
 
+    async def delete_data(self, key: str, partition_key: str) -> None:
+        with DaprClient() as client:
+            # Delete the discount from a hypothetical service using Dapr state
+            client.delete_state(
+                store_name=config.DATA_STORE_NAME,
+                key=key,
+                metadata={"partitionKey": partition_key},
+            )
+
 
 class CosmosDataStore(DataStore):
     def __init__(self):
@@ -87,6 +99,10 @@ class CosmosDataStore(DataStore):
         data["id"] = key
         data["partitionKey"] = partition_key
         self.container.upsert_item(data)
+
+    async def delete_data(self, key: str, partition_key: str) -> None:
+        # Delete the discount from a hypothetical service using Dapr state
+        self.container.delete_item(item=key, partition_key=partition_key)
 
 
 class LocalDataStore(DataStore):
@@ -132,6 +148,21 @@ class LocalDataStore(DataStore):
 
         # Append new data to the existing data
         existing_data.append(data)
+
+        # Write back to the file
+        with open(os.path.join(self.data_folder, f"{partition_key}.json"), "w") as file:
+            file.write(json.dumps(existing_data))
+
+    async def delete_data(self, key: str, partition_key: str) -> None:
+        # Read from local file using partition key as filename
+        with open(os.path.join(self.data_folder, f"{partition_key}.json"), "r") as file:
+            existing_data = file.read()
+
+        # Assuming the data is in JSON format, parse it
+        existing_data: list[dict] = json.loads(existing_data)
+
+        # Remove the specific key's data
+        existing_data = [item for item in existing_data if item["id"] != key]
 
         # Write back to the file
         with open(os.path.join(self.data_folder, f"{partition_key}.json"), "w") as file:

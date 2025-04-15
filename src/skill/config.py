@@ -26,6 +26,8 @@ class Config:
     # or "*" to allow any agent
     ALLOWED_CALLERS = os.getenv("ALLOWED_CALLERS", ["*"])
 
+    DATA_STORE_NAME = os.getenv("DATA_STORE_NAME", "data")
+
     def validate(self):
         if not self.HOST or not self.PORT:
             raise Exception(

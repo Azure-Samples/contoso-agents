@@ -46,7 +46,7 @@ class FulfillmentPlugin:
         Returns:
             List[Dict[str, Any]]: List of all orders with their details
         """
-        orders = self.data_store.query_data("SELECT * FROM c", "order")
+        orders = await self.data_store.query_data("SELECT * FROM c", "order")
         return orders
 
     @kernel_function(description="Save the final version of an order after processing.")
@@ -66,6 +66,25 @@ class FulfillmentPlugin:
             updated_order: The complete order object with all finalized details
         """
         await self.data_store.save_data(order_id, "order", updated_order)
+
+    @kernel_function(description="Get the delivery schedule for a specific order.")
+    async def get_delivery_schedule(
+        self,
+        order_id: Annotated[str, "The unique identifier for the order to retrieve"],
+    ) -> Dict[str, Any]:
+        """
+        Retrieves the delivery schedule for a specific order from the data store.
+
+        Args:
+            order_id: The unique identifier for the order to retrieve
+
+        Returns:
+            Dict[str, Any]: The delivery schedule for the specified order
+        """
+        delivery_schedule = await self.data_store.get_data(
+            order_id, "delivery_schedule"
+        )
+        return delivery_schedule
 
     @kernel_function(description="Save a delivery schedule for a processed order.")
     async def save_delivery_schedule(

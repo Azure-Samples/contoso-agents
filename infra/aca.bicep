@@ -135,6 +135,7 @@ resource daprDataStoreComponent 'Microsoft.App/managedEnvironments/daprComponent
     scopes: [
       'agents'
       'admin'
+      'skill'
     ]
     metadata: [
       {
@@ -247,6 +248,9 @@ resource agentsContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
             { name: 'COSMOSDB_ENDPOINT', value: cosmosDbEndpoint }
             { name: 'COSMOSDB_DATABASE', value: cosmosDbDatabaseName }
             { name: 'COSMOSDB_DATA_CONTAINER', value: dataContainerName }
+            { name: 'BOT_APP_ID', value: botAppId }
+            { name: 'BOT_PASSWORD', value: botPassword }
+            { name: 'BOT_TENANT_ID', value: botTenantId }
           ]
         }
       ]
@@ -306,6 +310,7 @@ resource skillContainerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
             { name: 'BOT_TENANT_ID', value: botTenantId }
             { name: 'TEAMS_APP_NAME', value: teamsAppName}
             { name: 'TEAMS_APP_ID', value: teamsAppId}
+            { name: 'DATA_STORE_NAME', value: 'data' }
           ]
         }
       ]
