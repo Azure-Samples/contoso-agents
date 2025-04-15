@@ -38,6 +38,17 @@ class FulfillmentPlugin:
         order = await self.data_store.get_data(order_id, "order")
         return order
 
+    @kernel_function(description="List all orders in the data store.")
+    async def list_orders(self) -> List[Dict[str, Any]]:
+        """
+        Lists all orders stored in the data store.
+
+        Returns:
+            List[Dict[str, Any]]: List of all orders with their details
+        """
+        orders = self.data_store.query_data("SELECT * FROM c", "order")
+        return orders
+
     @kernel_function(description="Save the final version of an order after processing.")
     async def finalize_order(
         self,

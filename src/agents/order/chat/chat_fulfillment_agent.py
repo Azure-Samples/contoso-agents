@@ -8,7 +8,7 @@ from order.plugins.fulfillment_plugin import FulfillmentPlugin
 chat_fulfillment_agent = ChatCompletionAgent(
     id="fulfillment_agent",
     name="OrderFulfillmentAgent",
-    description="Assists users with post-processing fulfillment inquiries and modifications for placed orders.",
+    description="Can help with delivery schedules, tracking shipments, and modifying deliveries and other fulfillment tasks for orders.",
     instructions="""
 # FULFILLMENT SUPPORT CHAT AGENT
 

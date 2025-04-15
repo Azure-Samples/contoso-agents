@@ -1,6 +1,5 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-import sys
 import traceback
 
 from botbuilder.core import (
@@ -12,6 +11,9 @@ from botbuilder.integration.aiohttp import (
     ConfigurationBotFrameworkAuthentication,
 )
 from botbuilder.schema import Activity, ActivityTypes, InputHints
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AdapterWithErrorHandler(CloudAdapter):
@@ -27,7 +29,7 @@ class AdapterWithErrorHandler(CloudAdapter):
         # This check writes out errors to console log
         # NOTE: In production environment, you should consider logging this to Azure
         #       application insights.
-        print(f"\n [on_turn_error] unhandled error: {error}", file=sys.stderr)
+        logger.error(f"[on_turn_error] unhandled error: {error}")
         traceback.print_exc()
         await self._send_error_message(turn_context, error)
         if turn_context.activity.channel_id != "msteams":
@@ -58,9 +60,8 @@ class AdapterWithErrorHandler(CloudAdapter):
                 value_type="https://www.botframework.com/schemas/error",
             )
         except Exception as exception:
-            print(
-                f"\n Exception caught on _send_error_message : {exception}",
-                file=sys.stderr,
+            logger.error(
+                f"Exception caught on _send_error_message : {exception}",
             )
             traceback.print_exc()
 
@@ -74,8 +75,7 @@ class AdapterWithErrorHandler(CloudAdapter):
 
             await turn_context.send_activity(end_of_conversation)
         except Exception as exception:
-            print(
-                f"\n Exception caught on _send_eoc_to_parent : {exception}",
-                file=sys.stderr,
+            logger.error(
+                f"Exception caught on _send_eoc_to_parent : {exception}",
             )
             traceback.print_exc()

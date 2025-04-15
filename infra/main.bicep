@@ -203,6 +203,7 @@ module bot 'bot.bicep' = {
     messagesEndpoint: aca.outputs.skillEndpoint
     botAppId: botAppId
     botTenantId: botTenantId
+    logAnalyticsWorkspaceId: appin.outputs.logAnalyticsWorkspaceId
   }
 }
 

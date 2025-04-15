@@ -3,6 +3,7 @@ param prefix string
 param messagesEndpoint string
 param botAppId string
 param botTenantId string
+param logAnalyticsWorkspaceId string
 
 resource bot 'Microsoft.BotService/botServices@2023-09-15-preview' = {
   name: '${prefix}bot${uniqueId}'
@@ -22,7 +23,36 @@ resource bot 'Microsoft.BotService/botServices@2023-09-15-preview' = {
     msaAppType: 'SingleTenant'
     msaAppMSIResourceId: null
     schemaTransformationVersion: '1.3'
-    isStreamingSupported: false  
+    isStreamingSupported: false      
+  }
+}
+
+// Diagnostic settings for the bot service
+resource botDiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'botDiagnosticSettings'
+  scope: bot
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
   }
 }
 

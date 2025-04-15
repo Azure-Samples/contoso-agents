@@ -11,7 +11,7 @@ from order.plugins.pricing_plugin import PricingAgentPlugin
 chat_pricing_agent = ChatCompletionAgent(
     id="pricing_agent",
     name="PricingAgent",
-    description="Assists users with post-processing pricing inquiries and modifications for placed orders.",
+    description="Can check discounts, customer-specific pricing, and calculate final prices for orders.",
     instructions="""
 # PRICING SUPPORT CHAT AGENT
 
