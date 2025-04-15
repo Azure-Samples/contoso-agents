@@ -19,6 +19,7 @@ from .chat.chat_fulfillment_agent import chat_fulfillment_agent
 from .chat.chat_price_agent import chat_pricing_agent
 from .chat.chat_substitution_agent import chat_substitution_agent
 from .chat.chat_validator_agent import chat_validator_agent
+from .chat.chat_greeter_agent import chat_greeter_agent
 
 
 PLANNING_MODEL = os.environ.get("PLANNING_MODEL", "o3-mini")
@@ -79,6 +80,7 @@ assistant_team = Team(
         chat_validator_agent,
         chat_substitution_agent,
         chat_fulfillment_agent,
+        chat_greeter_agent,
         chat_user_agent,  # NOTE: user agent is not used in the processing team
     ],
     kernel=kernel,
