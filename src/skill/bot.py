@@ -9,7 +9,7 @@ from botbuilder.schema import (
     InputHints,
     Activity,
     ActivityTypes,
-    EndOfConversationCodes,
+    EndOfConversationCodes
 )
 from dapr.actor import ActorProxy, ActorId, ActorInterface, actormethod
 from semantic_kernel.contents import ChatMessageContent
@@ -89,7 +89,7 @@ class UserActorInterface(ActorInterface):
     async def unbind_conversation(self, conversation_id: str) -> None: ...
 
     @actormethod(name="notify")
-    async def notify(self, message: dict) -> None: ...
+    async def notify(self, message: str | dict) -> None: ...
 
 
 @bot.activity(ActivityTypes.message)
@@ -147,7 +147,7 @@ async def on_installation_update(context: TurnContext, state: TurnState):
     persist the user ID and conversation ID in the Dapr Actor store.
     """
     action = context.activity.action
-    from_user = context.activity.from_property.id
+    from_user = context.activity.from_property.aad_object_id
     logger.info(f"Received installation update: {action} from user {from_user}")
 
     proxy = create_user_actor_proxy(context)
@@ -170,7 +170,7 @@ def create_user_actor_proxy(context: TurnContext) -> UserActorInterface:
         "UserActor",
         # NOTE: the actor ID is the user ID, not the order ID
         # this is because the actor is created for each user
-        ActorId(context.activity.from_property.id),
+        ActorId(context.activity.from_property.aad_object_id),
         UserActorInterface,
     )
 

@@ -4,6 +4,7 @@ from azure.cosmos import CosmosClient
 from azure.identity import DefaultAzureCredential
 import os
 from dotenv import load_dotenv
+from dapr.actor import ActorProxy, ActorId, ActorInterface, actormethod
 
 load_dotenv(override=True)
 
@@ -37,6 +38,25 @@ actor_list = list_actors()
 async def main():
     st.title("Orders Debugging")
 
+    # New Notification Test Section
+    st.sidebar.header("Notification Test")
+    st.write("## Notification Test Section")
+    # Define a list of default users
+    default_users = [
+        {"id": "558e61f5-bfbc-4836-b945-78563b508dcc", "displayName": "Riccardo Chiodaroli"},
+        {"id": "89ce8d6b-cfac-4b48-8a37-0cea87c5bb8c", "displayName": "Fabrizio Ruocco"},
+        {"id": "7e720380-2366-499e-aea3-f98537fbe1c2", "displayName": "Samer El Housseini"},
+        {"id": "00a54c92-6c33-42f0-9fae-6858286375d4", "displayName": "Daniel Labbe"},
+    ]
+    selected_user = st.selectbox(
+        "Select a Default User",
+        default_users,
+        format_func=lambda u: f"{u['displayName']} ({u['id']})"
+    )
+    if st.button("Send Notification"):
+        result = await send_notification(selected_user['id'])
+        st.success(result)
+
     st.sidebar.header("Query Settings")
     order_id = st.sidebar.selectbox(
         "Select Order", actor_list, format_func=lambda x: x.split("||")[2]
@@ -56,6 +76,29 @@ async def main():
 
             for msg in state.messages:
                 st.write(f"**{msg.role}**: {msg.content}")
+
+
+class UserActorInterface(ActorInterface):
+    @actormethod(name="ask")
+    async def ask(self, input_message: str) -> list[dict]: ...
+
+    @actormethod(name="get_history")
+    async def get_history(self) -> dict: ...
+
+    @actormethod(name="bind_conversation")
+    async def bind_conversation(self, conversation_id: str) -> None: ...
+
+    @actormethod(name="unbind_conversation")
+    async def unbind_conversation(self, conversation_id: str) -> None: ...
+
+    @actormethod(name="notify")
+    async def notify(self, message: str | dict) -> None: ...
+
+
+async def send_notification(user_id: str):
+    # Use Dapr UserActor proxy to send a notification
+    proxy: UserActorInterface = ActorProxy.create("UserActorInterface", ActorId(user_id), UserActorInterface)
+    await proxy.notify("This is a test notification.")
 
 
 if __name__ == "__main__":
