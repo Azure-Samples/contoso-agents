@@ -4,7 +4,7 @@ This is sample application for the Contoso Agents project, which demonstrates ho
 
 ## Features
 
-- Autonomous agents process incoming orders via email
+- Autonomous agents process incoming orders via email and notify users in Microsoft Teams of the eventual outcome
 - User can the review and approve orders interacting with the agents over Copilot Studio or Teams
 
 ## Technical overview
@@ -34,17 +34,17 @@ az ad app credential reset --id [app-id from previous command]
 
 Now you can start the deployment:
 
-1. `git clone [repository clone url]`
-2. `cd [repository name]`
+1. `git clone https://github.com/Azure-Samples/contoso-agents`
+2. `cd contoso-agents`
 3. `azd up`
 
 > [!IMPORTANT]
 > When prompted, input `botAppId`, `botAppPassword`, and `botAppTenantId` with the values from the Entra ID App Registration you created earlier.
 >
-> Additionally, you must also provide `openAIName` and `openAIResourceGroupName` of an existing OpenAI resource in your Azure subscription.
+> Additionally, you must also provide `openAIName` and `openAIResourceGroupName` of an existing OpenAI resource in your Azure subscription. Standard required deployments are `gpt-4.1-mini` and `o4-mini`, values can be changed in `infra/main.bicep`.
 
 > [!NOTE]
-> The deployment will take a few minutes to complete. The script will also run some post-provisioning tasks:
+> The deployment process will take several minutes to complete. The script will also run some post-provisioning tasks:
 >
 > - Update App Registration with the correct homepage URL (as required by Copilot Studio)
 > - Seed the database with some sample data
@@ -74,14 +74,6 @@ pip install -r src/skill/requirements.txt
 > After you deploy the application, you can find the required environment variables under `.azure/<env name>/.env`.
 >
 > You can copy those values to your local `.env` file.
-
-## Resources
-
-(Any additional resources or related projects)
-
-- Link to supporting information
-- Link to similar sample
-- ...
 
 ## Contributing
 
