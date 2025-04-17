@@ -93,7 +93,7 @@ Defined in the infra directory using Bicep templates:
 
 The application uses Azure **Application Insights** for telemetry and monitoring, enabling full end-to-end tracking of order processing and user interactions.
 
-![telemetry_example](image.png)
+![telemetry_example](telemetry_example.png)
 
 > [!NOTE]
 > Standard telemetry is automatically collected by the Azure SDKs (via `configure_azure_monitor` function), but additional handling is done for:
