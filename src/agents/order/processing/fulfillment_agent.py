@@ -1,8 +1,7 @@
 
 from semantic_kernel.agents import ChatCompletionAgent
-from utils.config import get_azure_openai_client
+from utils.config import get_azure_openai_client, config
 from order.plugins.fulfillment_plugin import FulfillmentPlugin
-
 
 fulfillment_agent = ChatCompletionAgent(
     id="fulfillment_agent",
@@ -221,6 +220,6 @@ This table provides a complete record of the order processing workflow from vali
 ALWAYS base your response on the available data. DO NOT invent data or fake information.
 REMEMBER: Your output is an OFFICIAL FULFILLMENT RECORD - be comprehensive, precise, and thorough.
 """,
-    service=get_azure_openai_client("o3-mini"),
+    service=get_azure_openai_client(config.PLANNING_MODEL),
     plugins=[FulfillmentPlugin()],
 )

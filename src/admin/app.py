@@ -1,8 +1,9 @@
 import streamlit as st
-from semantic_kernel.contents import ChatHistory
+from semantic_kernel.contents import ChatHistory, AuthorRole
 from azure.cosmos import CosmosClient
 from azure.identity import DefaultAzureCredential
 import os
+import json
 from dotenv import load_dotenv
 from dapr.actor import ActorProxy, ActorId, ActorInterface, actormethod
 
@@ -18,9 +19,9 @@ db_client = cosmos_client.get_database_client(os.getenv("COSMOSDB_DATABASE"))
 container_client = db_client.get_container_client(os.getenv("COSMOSDB_CONTAINER"))
 
 
-def list_actors():
+def list_order_actors():
     result = container_client.query_items(
-        query="SELECT c.id FROM c",
+        query="SELECT c.id FROM c WHERE CONTAINS(c.id, 'agents||ProcessingActor||order')",
         # NOTE not super efficient, but we need to get all actors in the container
         enable_cross_partition_query=True,
     )
@@ -32,14 +33,19 @@ def list_actors():
     return actor_list
 
 
-actor_list = list_actors()
+actor_list = list_order_actors()
 
 
 async def main():
-    st.title("Orders Debugging")
+    st.set_page_config(
+        page_title="Contoso Agents - Admin Console",
+        page_icon=":guardsman:",
+        layout="wide",
+    )
+    st.title("🏗️ Contoso Agents - Admin Console")
 
     # New Notification Test Section
-    st.sidebar.header("Options")
+    st.sidebar.header("⚒️ Tools")
     st.sidebar.write("## Notification Test")
     # Define a list of default users
     default_users = [
@@ -53,17 +59,20 @@ async def main():
         default_users,
         format_func=lambda u: f"{u['displayName']} ({u['id']})"
     )
-    if st.sidebar.button("Send Notification"):
-        await send_notification(selected_user['id'])
-        st.success('Notification sent!')
-
-    st.sidebar.write("## Query Order Process History")
-    order_id = st.sidebar.selectbox(
-        "Select Order", actor_list, format_func=lambda x: x.split("||")[2]
+    message = st.sidebar.text_area(
+        "Notification Message",
+        value="This is a test notification.",
+        height=100,
     )
+    if st.sidebar.button("Send Notification"):
+        await send_notification(selected_user['id'], message)
+        st.sidebar.success('Notification sent!')
 
     # Main content
-    st.write(f"### Selected Order ID: {order_id}")
+    st.write("## 🔍 Debug Order Process History")
+    order_id = st.selectbox(
+        "Select Order", actor_list, format_func=lambda x: x.split("||")[2]
+    )
 
     if order_id is not None:
         doc = container_client.read_item(
@@ -74,10 +83,20 @@ async def main():
         state = ChatHistory.model_validate(state)
 
         if state is not None:
-            st.write("### Retrieved Order process history")
 
             for msg in state.messages:
-                st.write(f"**{msg.role}**: {msg.content}")
+                icon = "🤖"
+                sender = f"{msg.name} ({msg.role})"
+                content = msg.content
+                # Handle user messages
+                if msg.role == AuthorRole.USER:
+                    icon = "👤"
+                    sender = "User"
+                # Handle function calls
+                if msg.role == AuthorRole.TOOL or (msg.role == AuthorRole.ASSISTANT and content in ["", " ", None]):
+                    icon = "⚒️"
+                    content = f"```json\n{json.dumps(msg.model_dump()['items'], indent=2)}```\n"
+                st.write(f"## {icon} {sender}\n{content}")
 
 
 class UserActorInterface(ActorInterface):
@@ -97,10 +116,10 @@ class UserActorInterface(ActorInterface):
     async def notify(self, message: str | dict) -> None: ...
 
 
-async def send_notification(user_id: str):
+async def send_notification(user_id: str, message: str):
     # Use Dapr UserActor proxy to send a notification
     proxy: UserActorInterface = ActorProxy.create("UserActor", ActorId(user_id), UserActorInterface)
-    await proxy.notify("This is a test notification.")
+    await proxy.notify(message=message)
 
 
 if __name__ == "__main__":

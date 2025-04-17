@@ -1,5 +1,5 @@
 from semantic_kernel.agents import ChatCompletionAgent
-from utils.config import get_azure_openai_client
+from utils.config import get_azure_openai_client, config
 
 
 from order.plugins.fulfillment_plugin import FulfillmentPlugin
@@ -169,6 +169,6 @@ For backorder information, provide:
 
 Remember, your goal is to provide helpful assistance with delivery and fulfillment that ensures customers understand their order status and helps resolve any issues or requests related to order delivery.
 """,
-    service=get_azure_openai_client("o3-mini"),
+    service=get_azure_openai_client(config.PLANNING_MODEL),
     plugins=[FulfillmentPlugin()],
 )

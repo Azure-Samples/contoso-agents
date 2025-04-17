@@ -23,6 +23,9 @@
     "openAIModel": {
       "value": "${AZURE_OPENAI_CHAT_DEPLOYMENT_NAME}"
     },
+    "openAiPlanningModel": {
+      "value": "${AZURE_OPENAI_PLANNING_DEPLOYMENT_NAME}"
+    },
     "openAIApiVersion": {
       "value": "${AZURE_OPENAI_API_VERSION}"
     },

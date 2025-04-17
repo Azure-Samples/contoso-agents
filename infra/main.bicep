@@ -22,7 +22,8 @@ param openAIName string
 @description('Name of the Azure Resource Group where the OpenAI resource is located')
 param openAIResourceGroupName string
 
-param openAIModel string = 'gpt-4o-mini'
+param openAIModel string = 'gpt-4.1-mini'
+param openAiPlanningModel string = 'o4-mini'
 param openAIApiVersion string = '2024-12-01-preview'
 
 
@@ -176,6 +177,7 @@ module aca './aca.bicep' = {
     openAiApiKey: '' // Force ManId, otherwise set openAI.listKeys().key1
     openAiEndpoint: openAI.outputs.openAIEndpoint
     openAiModel: openAIModel
+    openAiPlanningModel: openAiPlanningModel
     openAiApiVersion: openAIApiVersion
     serviceBusNamespaceFqdn: '${servicebus.outputs.name}.servicebus.windows.net'
     cosmosDbEndpoint: cosmos.outputs.cosmosDbEndpoint

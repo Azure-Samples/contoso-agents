@@ -6,6 +6,7 @@ param openAiEndpoint string
 param openAiApiKey string
 param openAiApiVersion string
 param openAiModel string
+param openAiPlanningModel string
 param applicationInsightsConnectionString string
 param containerRegistry string = '${prefix}acr${uniqueId}'
 param location string = resourceGroup().location
@@ -239,6 +240,7 @@ resource agentsContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
             { name: 'APPLICATIONINSIGHTS_SERVICE_NAME', value: 'agents' }
             { name: 'AZURE_OPENAI_ENDPOINT', value: openAiEndpoint }
             { name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_NAME', value: openAiModel }
+            { name: 'AZURE_OPENAI_PLANNING_DEPLOYMENT_NAME', value: openAiPlanningModel }
             { name: 'AZURE_OPENAI_API_KEY', value: openAiApiKey }
             { name: 'AZURE_OPENAI_API_VERSION', value: openAiApiVersion }
             { name: 'SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE', value: 'true' }

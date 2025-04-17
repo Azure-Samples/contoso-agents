@@ -27,6 +27,10 @@ class Config:
     COSMOSDB_DATABASE = os.getenv("COSMOSDB_DATABASE")
     COSMOSDB_DATA_CONTAINER = os.getenv("COSMOSDB_DATA_CONTAINER")
 
+    PLANNING_MODEL = os.environ.get("AZURE_OPENAI_PLANNING_DEPLOYMENT_NAME", "o4-mini")
+
+    NOTIFY_USER_IDS = os.getenv("NOTIFY_USER_IDS", "").split(",")
+
     def validate(self):
         # Validate the configuration
 
@@ -36,10 +40,6 @@ class Config:
                 raise ValueError("PUBSUB_NAME is not set in the environment variables.")
             if not self.TOPIC_NAME:
                 raise ValueError("TOPIC_NAME is not set in the environment variables.")
-            # if not self.DATA_STORE_NAME:
-            #     raise ValueError(
-            #         "DATA_STORE_NAME is not set in the environment variables."
-            #     )
         else:
             if not self.LOCAL_DATA_FOLDER:
                 raise ValueError(

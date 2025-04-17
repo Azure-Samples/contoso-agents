@@ -9,7 +9,6 @@ from fastapi import FastAPI, Request
 from utils.config import config
 from cloudevents.http import from_http
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-import os
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -56,10 +55,12 @@ async def process_new_order(req: Request):
         await proxy.process(f"Process order {order_id} with data\n\n{data}")
 
         # TODO evaluate whether to use Cosmos DB for this
-        notify_user_ids = os.getenv("NOTIFY_USER_IDS", "")
-        for user_id in notify_user_ids.split(","):
+        logger.info(f"Order {order_id} processed successfully")
+        logger.info(f"Sending notification to users {config.NOTIFY_USER_IDS}")
+        for user_id in config.NOTIFY_USER_IDS:
             user_id = user_id.strip()
             if user_id:
+                logger.info(f"Sending notification to user {user_id}")
                 user_proxy: UserActorInterface = ActorProxy.create(
                     "UserActor", ActorId(user_id), UserActorInterface
                 )

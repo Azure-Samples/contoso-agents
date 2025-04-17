@@ -163,7 +163,7 @@ class FulfillmentPlugin:
             id_list = ", ".join([f"'{id}'" for id in facility_ids])
             query = f"SELECT * FROM c WHERE c.id IN ({id_list})"
 
-        facilities = self.data_store.query_data(query, "facility")
+        facilities = await self.data_store.query_data(query, "facility")
 
         # Enhance with calculated delivery timeframes and current status
         for facility in facilities:

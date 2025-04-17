@@ -13,7 +13,7 @@ flowchart TD
     B --> C["Service Bus (PubSub)"]
 
     %% Row 2: Processing and Decision Making
-    C --> D["Autonomous Agents (Dapr Actor)"]
+    C --> D["Autonomous Agents (Dapr Actors)"]
     D -- Reads/Writes --> F["Cosmos DB (State + Data)"]
     D -- Uses --> E[Azure OpenAI Service]
     D -- Deployed on --> I[Azure Container Apps]
@@ -46,21 +46,28 @@ Located in the agents directory, these agents handle specific tasks in the order
 > [!IMPORTANT]
 > The agents are assembled in two different ways:
 >
-> - `processing_team` using a `PlannedTeam` orchestrator, which is a single agent that handles the entire order processing workflow and can iterate over providing feedback to the other agents.
-> - `assistant_team` using a `Team` orchestrator, which instead uses a _speaker election_ approach to determine which agent should be the next to support the user in a human-in-the-loop scenario.
+> - `processing_team` using a `PlannedTeam` orchestrator, which is a single agent that handles the entire order processing workflow and can iterate over providing feedback to the other agents. This is exposed as a Dapr actor called `ProcessingActor`, which is the main entry point for order processing.
+> - `assistant_team` using a `Team` orchestrator, which instead uses a _speaker election_ approach to determine which agent should be the next to support the user in a human-in-the-loop scenario. This is exposed as a Dapr actor called `UserActor`, which is the main entry point for user interaction. This team is used when the user interacts with the system via Copilot Studio or Microsoft Teams.
 
 Either way, both teams are implemented as Dapr actors, which allows them to be deployed as microservices in Azure Container Apps and manage conversation state natively.
 
 ### User Interaction (`src/skill`)
 
-Human-in-the-loop interaction is facilitated through the `skill` directory, which contains the **Azure Bot Service skill** implementation and integration with Copilot Studio (which can puslish to Microsoft Teams)
+Human-in-the-loop interaction is facilitated through the `skill` directory, which contains the **Azure Bot Service skill** implementation and integration with Copilot Studio and Microsoft Teams.
 
 > [!NOTE]
 > It is key to note human-in-the-loop interaction is not expected at first, since the initial processing is fully autonomous. HIL is only used for review and exception handling.
 
+This skill always uses the `assistant_team` agent, proxied via `UserActor`, which allows the user to interact with the agents in a conversational manner and persist history as agent state.
+
+> [!NOTE]
+> In order to properly format messages in chat, the skill always converts outputs from the agents to a `AdaptiveCard` object, which is then rendered in the chat.
+
+Additionally, when installed in Teams the skill handles specific `installationUpdate` events to register the user in the system and create a `UserActor` for them - this will be used to notify the user of any new order.
+
 ### Admin dashboard (`src/admin`)
 
-A sample Streamlit application is provided in the `admin` directory for monitoring and managing the agents. It allows users to view order statuses, agent performance, and system logs.
+A basic Streamlit application is provided in the `admin` directory for monitoring order processing and test user notifications.
 
 ### Data Storage
 

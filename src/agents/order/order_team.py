@@ -1,4 +1,3 @@
-import os
 
 from semantic_kernel.functions import KernelFunctionFromPrompt
 from sk_ext.feedback_strategy import KernelFunctionFeedbackStrategy
@@ -7,7 +6,7 @@ from sk_ext.planning_strategy import DefaultPlanningStrategy
 from sk_ext.speaker_election_strategy import SpeakerElectionStrategy
 from sk_ext.team import Team
 from sk_ext.termination_strategy import UserInputRequiredTerminationStrategy
-from utils.config import create_kernel
+from utils.config import create_kernel, config
 
 from .processing.fulfillment_agent import fulfillment_agent
 from .processing.price_agent import pricing_agent
@@ -22,10 +21,8 @@ from .chat.chat_validator_agent import chat_validator_agent
 from .chat.chat_greeter_agent import chat_greeter_agent
 
 
-PLANNING_MODEL = os.environ.get("PLANNING_MODEL", "o3-mini")
-
 kernel = create_kernel()
-planning_kernel = create_kernel(PLANNING_MODEL)
+planning_kernel = create_kernel(config.PLANNING_MODEL)
 
 # Used in order processing, no HIL
 processing_team = PlannedTeam(

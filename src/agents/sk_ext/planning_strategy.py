@@ -1,3 +1,4 @@
+from opentelemetry import trace
 import os
 from abc import ABC
 from typing import TYPE_CHECKING, Annotated
@@ -19,9 +20,8 @@ if TYPE_CHECKING:
 
 import logging
 
-PLANNING_MODEL = os.environ.get("PLANNING_MODEL", "o3-mini")
+PLANNING_MODEL = os.environ.get("AZURE_OPENAI_PLANNING_DEPLOYMENT_NAME", "o4-mini")
 
-from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,6 @@ class DefaultPlanningStrategy(PlanningStrategy):
     Default planning strategy that uses a kernel function to create a plan to solve the user inquiry by using the available agents.
     """
     kernel: Kernel
-
 
     async def create_plan(
         self,
@@ -140,7 +139,6 @@ BE SURE TO READ THE INSTRUCTIONS ABOVE AGAIN BEFORE PROCEEDING.
 """
 
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", self.kernel)
-        
 
         if self.history_reducer is not None:
             self.history_reducer.messages = history
@@ -163,16 +161,10 @@ BE SURE TO READ THE INSTRUCTIONS ABOVE AGAIN BEFORE PROCEEDING.
         # Invoke the function
         arguments = KernelArguments()
 
-        # execution_settings = AzureChatPromptExecutionSettings(
-        #     service_id = "o3-mini",
-        #     response_format = TeamPlan
-        # )
-
         execution_settings = self.kernel.get_prompt_execution_settings_from_service_id(service_id=PLANNING_MODEL)
         execution_settings.response_format = TeamPlan
         # https://devblogs.microsoft.com/semantic-kernel/using-json-schema-for-structured-output-in-python-for-openai-models/
         # execution_settings["response_format"] = TeamPlan
-
 
         input_prompt = prompt.format(
             agents=agents_info, inquiry=messages[-1]["content"], feedback=feedback
