@@ -41,6 +41,15 @@ async def process_new_order(req: Request):
     Will route to the SKAgentActor to process the order.
     NOTE: the actor ID is the order ID.
     """
+    from opentelemetry.propagate import inject
+    from dapr.serializers import DefaultJSONSerializer
+    from dapr.clients import DaprActorHttpClient
+
+    def headers_callback():
+        headers = {}
+        inject(headers)  # injects `traceparent` and optionally `tracestate`
+        return headers
+
     try:
         body = await req.body()
 
@@ -49,8 +58,20 @@ async def process_new_order(req: Request):
         order_id = data["order_id"]
         logger.info(f"Received order input (ID {order_id}): {data}")
 
-        proxy: ProcessingActorInterface = ActorProxy.create(
-            "ProcessingActor", ActorId(f"{order_id}"), ProcessingActorInterface
+        # NOTE Set larger timeout for the actor proxy to allow for long-running tasks
+        # NOTE Dapr default http client does not handle OpenTelemetry headers, so we need to set them manually
+        default_serializer = DefaultJSONSerializer()
+        dap_otel_client = DaprActorHttpClient(
+            headers_callback=headers_callback,
+            timeout=600,
+            message_serializer=default_serializer)
+
+        proxy: ProcessingActorInterface = ActorProxy(
+            client=dap_otel_client,
+            actor_id=ActorId(f"{order_id}"),
+            actor_type="ProcessingActor",
+            actor_interface=ProcessingActorInterface,
+            message_serializer=default_serializer
         )
         await proxy.process(f"Process order {order_id} with data\n\n{data}")
 
@@ -61,8 +82,12 @@ async def process_new_order(req: Request):
             user_id = user_id.strip()
             if user_id:
                 logger.info(f"Sending notification to user {user_id}")
-                user_proxy: UserActorInterface = ActorProxy.create(
-                    "UserActor", ActorId(user_id), UserActorInterface
+                user_proxy: UserActorInterface = ActorProxy(
+                    client=dap_otel_client,
+                    actor_type="UserActor",
+                    actor_id=ActorId(user_id),
+                    actor_interface=UserActorInterface,
+                    message_serializer=default_serializer
                 )
                 await user_proxy.notify(f"New order {order_id} received and processed", from_user="order_team")
 

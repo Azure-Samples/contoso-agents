@@ -2,8 +2,6 @@ from dapr.actor import ActorInterface, Actor, actormethod
 import logging
 
 from semantic_kernel.contents.chat_history import ChatHistory
-from semantic_kernel.contents.chat_message_content import ChatMessageContent
-from semantic_kernel.agents import Agent
 from order.order_team import processing_team
 
 logger = logging.getLogger(__name__)
@@ -19,7 +17,7 @@ logger.setLevel(logging.DEBUG)  # Ensure logging level is set as required
 class ProcessingActorInterface(ActorInterface):
 
     @actormethod(name="process")
-    async def process(self, input_message: str) -> list[dict]: ...
+    async def process(self, input_message: str) -> None: ...
 
     @actormethod(name="get_history")
     async def get_history(self) -> dict: ...
@@ -49,37 +47,24 @@ class ProcessingActor(Actor, ProcessingActorInterface):
         logger.debug(f"Getting conversation history for actor {self.id}")
         return self.history.model_dump()
 
-    async def process(self, input_message: str) -> list[dict]:
+    async def process(self, input_message: str) -> None:
         """
         Process the input message using the agent and return the response.
         This method is used to process order emails
         """
-        results = await self._invoke_agent(processing_team, input_message)
-        results = [msg.model_dump() for msg in results]
-
-        return results
-
-    async def _invoke_agent(
-        self, agent: Agent, input_message: str
-    ) -> list[ChatMessageContent]:
         try:
             logger.info(f"Invoking actor {self.id} with input message: {input_message}")
             self.history.add_user_message(input_message)
-            results: list[ChatMessageContent] = []
 
-            async for result in agent.invoke(history=self.history):
+            async for result in processing_team.invoke(history=self.history):
                 logger.debug(
                     f"Received result from agent for actor {self.id}: {result}"
                 )
-                results.append(result)
 
-            # TODO move under for loop to save each message as it is received
-            await self._save_history()
-
-            return results
+                await self._save_history()
         except Exception as e:
             logger.error(
-                f"Error occurred in ask for actor {self.id}: {e}", exc_info=True
+                f"Error occurred in actor {self.id}: {e}", exc_info=True
             )
             raise
 

@@ -1,8 +1,25 @@
 import datetime
-from typing import Annotated, Any, Dict, List, Optional
-
+from typing import Annotated, Any, Dict, List
+from pydantic import BaseModel, Field
 from semantic_kernel.functions import kernel_function
+
 from utils.store import get_data_store
+
+
+class DeliveryScheduleItem(BaseModel):
+    sku: str
+    facility: str
+    quantity: int
+    delivery_date: str
+    line_total: str
+
+
+class DeliverySchedule(BaseModel):
+    order_id: str
+    order_price_total: str
+    delivery_schedule: List[DeliveryScheduleItem]
+    final_comments: str
+    order_issues: List[Any] = Field(default_factory=list)
 
 
 class FulfillmentPlugin:
@@ -90,7 +107,7 @@ class FulfillmentPlugin:
     async def save_delivery_schedule(
         self,
         delivery_schedule: Annotated[
-            Dict[str, Any], "Object containing the complete delivery plan for the order"
+            DeliverySchedule, "Object containing the complete delivery plan for the order"
         ],
         order_id: Annotated[
             str, "The unique identifier for the order this delivery schedule belongs to"
@@ -106,7 +123,7 @@ class FulfillmentPlugin:
             order_id: The unique identifier for the order this delivery schedule belongs to
         """
         await self.data_store.save_data(
-            order_id, "delivery_schedule", delivery_schedule
+            order_id, "delivery_schedule", delivery_schedule.model_dump()
         )
 
     @kernel_function(
@@ -138,7 +155,7 @@ class FulfillmentPlugin:
     async def get_facility_details(
         self,
         facility_ids: Annotated[
-            Optional[List[str]], "Optional list of facility IDs to filter by"
+            List[str], "Optional list of facility IDs to filter by"
         ] = None,
     ) -> Dict[str, Any]:
         """

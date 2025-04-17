@@ -6,6 +6,10 @@ import os
 import json
 from dotenv import load_dotenv
 from dapr.actor import ActorProxy, ActorId, ActorInterface, actormethod
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)  # Ensure logging level is set as required
 
 load_dotenv(override=True)
 
@@ -64,7 +68,7 @@ async def main():
         value="This is a test notification.",
         height=100,
     )
-    if st.sidebar.button("Send Notification"):
+    if st.sidebar.button("📨 Send Notification"):
         await send_notification(selected_user['id'], message)
         st.sidebar.success('Notification sent!')
 
@@ -119,7 +123,8 @@ class UserActorInterface(ActorInterface):
 async def send_notification(user_id: str, message: str):
     # Use Dapr UserActor proxy to send a notification
     proxy: UserActorInterface = ActorProxy.create("UserActor", ActorId(user_id), UserActorInterface)
-    await proxy.notify(message=message)
+    logger.info(f"Sending notification to user {user_id}: {message}")
+    await proxy.notify(message)
 
 
 if __name__ == "__main__":

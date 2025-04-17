@@ -126,7 +126,10 @@ class UserActor(Actor, UserActorInterface):
         if exists:
             logger.info(f"Sending notification to conversation {conversation_id}")
             # Send the message to the user
-            notify(conversation_id, message, from_user="process_order")
+            try:
+                notify(conversation_id, message, from_user="process_order")
+            except Exception as e:
+                logger.error(f"Failed to send notification for actor {self.id}: {e}", exc_info=True)
         else:
             logger.warning(
                 f"Cannot send notification to actor {self.id} because no conversation ID is registered."

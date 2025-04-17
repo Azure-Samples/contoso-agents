@@ -4,9 +4,17 @@ from aiohttp.web import Request, Response
 import os
 from bot import bot
 from config import config
+from opentelemetry.instrumentation.aiohttp_server import AioHttpServerInstrumentor
+from azure.monitor.opentelemetry import configure_azure_monitor
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger("azure").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
+connection_string = os.getenv("APPLICATIONINSIGHTS_CONNECTIONSTRING")
+configure_azure_monitor(connection_string=connection_string)
+# NOTE must be called before the app is created
+# to instrument the AioHttp server
+AioHttpServerInstrumentor().instrument()
 
 
 # Endpoint for processing messages

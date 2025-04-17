@@ -1,6 +1,8 @@
 import os
 import requests
 from azure.identity import ClientSecretCredential
+import logging
+logger = logging.getLogger(__name__)
 
 # Get an Azure AD token with client credentials
 
@@ -21,8 +23,9 @@ def notify(conversation_id, content, from_user="user1"):
 
     Args:
         conversation_id (str): The conversation ID to send the message to.
-        message_text (str): The message text to send.
+        content (str): The message text to send.
         from_user (str): The user ID sending the message.
+
     Returns:
         dict: The response from the DirectLine API.
     """
@@ -53,6 +56,11 @@ def notify(conversation_id, content, from_user="user1"):
             }
         ]
     }
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        logger.debug("Notification sent successfully: %s", response.json())
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error("Failed to send notification: %s", str(e))
+        raise

@@ -26,7 +26,7 @@ planning_kernel = create_kernel(config.PLANNING_MODEL)
 
 # Used in order processing, no HIL
 processing_team = PlannedTeam(
-    id="order_processing_team",
+    id="OrderProcessingTeam",
     name="OrderProcessingTeam",
     description="Order Processing Team",
     agents=[
@@ -69,7 +69,7 @@ The feedback MUST be a JSON object with the following structure:
 
 # Used in chat/skill with user
 assistant_team = Team(
-    id="order_assistant_team",
+    id="OrderAssistantTeam",
     name="OrderAssistantTeam",
     description="Order Assistant Team",
     agents=[

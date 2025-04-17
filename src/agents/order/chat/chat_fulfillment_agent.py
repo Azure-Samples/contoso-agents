@@ -1,7 +1,6 @@
 from semantic_kernel.agents import ChatCompletionAgent
 from utils.config import get_azure_openai_client, config
 
-
 from order.plugins.fulfillment_plugin import FulfillmentPlugin
 
 

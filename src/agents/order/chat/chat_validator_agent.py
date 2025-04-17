@@ -1,9 +1,5 @@
-import logging
-
 from semantic_kernel.agents import ChatCompletionAgent
 from utils.config import get_azure_openai_client
-
-logger = logging.getLogger(__name__)
 
 from order.plugins.validation_plugin import ValidationPlugin
 

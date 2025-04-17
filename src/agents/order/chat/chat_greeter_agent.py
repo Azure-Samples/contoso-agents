@@ -1,8 +1,10 @@
 from semantic_kernel.agents import ChatCompletionAgent
+from utils.config import get_azure_openai_client
 
 chat_greeter_agent = ChatCompletionAgent(
     id="greeter_agent",
     name="GreeterAgent",
+    service=get_azure_openai_client(),
     description="A friendly assistant that greets users and provides information about the system.",
     instructions="""
 # GREETER CHAT AGENT

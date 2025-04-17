@@ -1,11 +1,6 @@
-import logging
-
 from semantic_kernel.agents import ChatCompletionAgent
 from utils.config import get_azure_openai_client
 from order.plugins.substitution_plugin import SubstitutionAgentPlugin
-
-logger = logging.getLogger(__name__)
-
 
 chat_substitution_agent = ChatCompletionAgent(
     id="substitution_agent",

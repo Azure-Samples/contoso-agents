@@ -166,12 +166,29 @@ def create_user_actor_proxy(context: TurnContext) -> UserActorInterface:
     """
     Create a proxy to the UserActor using the user ID as the actor ID.
     """
-    proxy: UserActorInterface = ActorProxy.create(
-        "UserActor",
+    from opentelemetry.propagate import inject
+    from dapr.serializers import DefaultJSONSerializer
+    from dapr.clients import DaprActorHttpClient
+
+    def headers_callback():
+        headers = {}
+        inject(headers)  # injects `traceparent` and optionally `tracestate`
+        return headers
+
+    default_serializer = DefaultJSONSerializer()
+    dap_otel_client = DaprActorHttpClient(
+        headers_callback=headers_callback,
+        timeout=600,
+        message_serializer=default_serializer)
+
+    proxy: UserActorInterface = ActorProxy(
+        actor_type="UserActor",
         # NOTE: the actor ID is the user ID, not the order ID
         # this is because the actor is created for each user
-        ActorId(context.activity.from_property.aad_object_id),
-        UserActorInterface,
+        actor_id=ActorId(context.activity.from_property.aad_object_id),
+        actor_interface=UserActorInterface,
+        client=dap_otel_client,
+        message_serializer=default_serializer,
     )
 
     return proxy
