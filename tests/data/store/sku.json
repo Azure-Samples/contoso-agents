@@ -1,0 +1,42 @@
+[
+  {
+    "id": "SKU-A100",
+    "partitionKey": "SKU",
+    "description": "Sport T shirt",
+    "inventory": 100,
+    "unit_price": 50.0,
+    "substitute": "SKU-C300"
+  },
+  {
+    "id": "SKU-A102",
+    "description": "Hoodie",
+    "partitionKey": "SKU",
+    "inventory": 0,
+    "unit_price": 70.0,
+    "substitute": "SKU-A103"
+  },
+  {
+    "id": "SKU-A103",
+    "description": "Hoodie (PFC free)",
+    "partitionKey": "SKU",
+    "inventory": 50,
+    "unit_price": 65.0,
+    "substitute": null
+  },
+  {
+    "id": "SKU-A104",
+    "description": "Elephant T-shirt",
+    "partitionKey": "SKU",
+    "inventory": 20,
+    "unit_price": 80.0,
+    "substitute": null
+  },
+  {
+    "id": "SKU-C300",
+    "description": "Elephant T-shirt (PFC free)",
+    "partitionKey": "SKU",
+    "inventory": 0,
+    "unit_price": 80.0,
+    "substitute": null
+  }
+]

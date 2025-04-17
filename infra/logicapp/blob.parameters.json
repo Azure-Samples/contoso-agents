@@ -1,0 +1,10 @@
+{
+  "$connections": {
+    "type": "Object",
+    "defaultValue": {}
+  },
+  "blob": {
+    "type": "String",
+    "defaultValue": ""
+  }
+}

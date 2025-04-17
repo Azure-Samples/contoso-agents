@@ -1,57 +1,84 @@
-# Project Name
+# Contoso Agents
 
-(short, 1-3 sentenced, description of the project)
+This is sample application for the Contoso Agents project, which demonstrates how to build autonomous agents that can process incoming orders via email. The agents are designed to work with Microsoft Copilot Studio and Microsoft Teams, allowing users to review and approve orders through a user-friendly interface.
 
 ## Features
 
-This project framework provides the following features:
+- Autonomous agents process incoming orders via email and notify users in Microsoft Teams of the eventual outcome
+- User can the review and approve orders interacting with the agents over Copilot Studio or Teams
 
-* Feature 1
-* Feature 2
-* ...
+## Technical overview
+
+If you are interested in the technical details of the project, a comprehensive overview of the architecture and design decisions can be found in the [Technical Overview](docs/technical_overview.md) document.
 
 ## Getting Started
 
 ### Prerequisites
 
-(ideally very short, if any)
-
-- OS
-- Library version
-- ...
-
-### Installation
-
-(ideally very short)
-
-- npm install [package name]
-- mvn install
-- ...
+- Python 3.12 or later
+- Azure Deverloper CLI
 
 ### Quickstart
-(Add steps to get up and running quickly)
 
-1. git clone [repository clone url]
-2. cd [repository name]
-3. ...
+> [!IMPORTANT]
+> In order to start the deployment, you must first create an Entra ID App Registration with a client secret.
+> This is required for the Azure Bot Service to work.
 
+> [!TIP]
+> You can create the Entra ID App Registration using the Azure CLI with the following command:
 
-## Demo
+```bash
+az ad app create --display-name "Contoso Agents Bot"
+az ad app credential reset --id [app-id from previous command]
+```
 
-A demo app is included to show how to use the project.
+Now you can start the deployment:
 
-To run the demo, follow these steps:
+1. `git clone https://github.com/Azure-Samples/contoso-agents`
+2. `cd contoso-agents`
+3. `azd up`
 
-(Add steps to start up the demo)
+> [!IMPORTANT]
+> When prompted, input `botAppId`, `botAppPassword`, and `botAppTenantId` with the values from the Entra ID App Registration you created earlier.
+>
+> Additionally, you must also provide `openAIName` and `openAIResourceGroupName` of an existing OpenAI resource in your Azure subscription. Standard required deployments are `gpt-4.1-mini` and `o4-mini`, values can be changed in `infra/main.bicep`.
 
-1.
-2.
-3.
+> [!NOTE]
+> The deployment process will take several minutes to complete. The script will also run some post-provisioning tasks:
+>
+> - Update App Registration with the correct homepage URL (as required by Copilot Studio)
+> - Seed the database with some sample data
 
-## Resources
+## Running locally
 
-(Any additional resources or related projects)
+Part of this application can be run locally for development purposes. To do this, you need to set up a local environment and install the required dependencies.
 
-- Link to supporting information
-- Link to similar sample
-- ...
+1. Create a virtual environment and activate it:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows use .venv\Scripts\activate
+```
+
+2. Install the required dependencies:
+
+```bash
+pip install -r src/agents/requirements.txt
+pip install -r src/admin/requirements.txt
+pip install -r src/skill/requirements.txt
+```
+
+3. Set up `.env` file with the required environment variables. You can use the `.env.example` file as a reference.
+
+> [!TIP]
+> After you deploy the application, you can find the required environment variables under `.azure/<env name>/.env`.
+>
+> You can copy those values to your local `.env` file.
+
+## Contributing
+
+Please read the [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

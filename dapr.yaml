@@ -1,0 +1,10 @@
+version: 1
+apps:
+  - appID: agents
+    appDirPath: src/agents
+    resourcesPaths: 
+      - .dapr
+    appProtocol: http
+    appPort: 5101
+    appHealthCheckPath: "/healthz"
+    command: ["uvicorn", "app:app", "--port", "5101"]

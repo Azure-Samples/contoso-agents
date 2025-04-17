@@ -1,0 +1,7 @@
+python-dotenv
+botbuilder-integration-aiohttp>=4.15.0
+teams-ai>=1.8.0,<2.0.0
+semantic-kernel==1.22.0
+dapr>=1.14.0,<2.0.0
+opentelemetry-instrumentation-aiohttp-server==0.52b1
+azure-monitor-opentelemetry==1.6.5

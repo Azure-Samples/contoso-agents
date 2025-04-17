@@ -1,0 +1,40 @@
+[
+  {
+    "id": "cust001",
+    "partitionKey": "customer",
+    "name": "Acme Corporation",
+    "pricesheet": {
+      "currency": "USD",
+      "updated": "2025-03-01",
+      "items": [
+        {
+          "sku": "SKU_AAA1",
+          "price": 40
+        },
+        {
+          "sku": "SKU_AAA3",
+          "price": 55
+        }
+      ]
+    }
+  },
+  {
+    "id": "cust002",
+    "partitionKey": "customer",
+    "name": "Beta Industries",
+    "pricesheet": {
+      "currency": "EUR",
+      "updated": "2025-02-15",
+      "items": [
+        {
+          "sku": "SKU_AAA3",
+          "price": 55.0
+        },
+        {
+          "sku": "SKU_AAA4",
+          "price": 65.0
+        }
+      ]
+    }
+  }
+]

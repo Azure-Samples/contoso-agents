@@ -1,0 +1,6 @@
+streamlit>=1.44.1
+semantic-kernel>=1.22.0
+dapr>=1.14.0,<2.0.0
+azure-identity>=1.19.0
+python-dotenv==1.0.1
+azure-cosmos>=4.7.0

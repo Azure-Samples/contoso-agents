@@ -1,0 +1,19 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: data
+spec:
+  type: state.azure.cosmosdb
+  version: v1
+  metadata:
+  - name: url
+    value: "https://csagcosmosjtib4eenr4meo.documents.azure.com:443/"
+  - name: masterKey
+    secretKeyRef:
+      name: localsecretstore
+      key: cosmos_masterKey
+  - name: database
+    value: "orders"
+  - name: collection
+    value: "data"
+  

@@ -1,0 +1,24 @@
+{
+  "When_a_blob_is_added_or_modified_(properties_only)_(V2)": {
+    "type": "ApiConnection",
+    "inputs": {
+      "host": {
+        "connection": {
+          "name": "@parameters('$connections')['azureblob']['connectionId']"
+        }
+      },
+      "method": "get",
+      "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('blob')))}/triggers/batch/onupdatedfile",
+      "queries": {
+        "folderId": "inbox",
+        "maxFileCount": 10,
+        "checkBothCreatedAndModifiedDateTime": false
+      }
+    },
+    "recurrence": {
+      "interval": 1,
+      "frequency": "Minute"
+    },
+    "splitOn": "@triggerBody()"
+  }
+}

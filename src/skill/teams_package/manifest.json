@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/vDevPreview/MicrosoftTeams.schema.json",
+  "manifestVersion": "devPreview",
+  "version": "1.0.0",
+  "id": "__teamsAppId",
+  "developer": {
+    "name": "Contoso",
+    "websiteUrl": "https://go.microsoft.com/fwlink/?linkid=2138949",
+    "privacyUrl": "https://go.microsoft.com/fwlink/?linkid=2138865",
+    "termsOfUseUrl": "https://go.microsoft.com/fwlink/?linkid=2138950"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "__teamsAppName",
+    "full": "full desc"
+  },
+  "description": {
+    "short": "short description",
+    "full": "full desc"
+  },
+  "copilotAgents": {
+    "customEngineAgents": [{ "id": "__botAppId", "type": "bot" }]
+  },
+  "bots": [
+    {
+      "botId": "__botAppId",
+      "scopes": ["personal"],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "accentColor": "#FFFFFF",
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": []
+}

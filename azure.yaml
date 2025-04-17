@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: sk-agentic-callcenter
+services:
+    skill:
+        project: src/skill
+        host: containerapp
+        language: python
+        docker:
+            path: dockerfile
+            remoteBuild: true
+    agents:
+        project: src/agents
+        host: containerapp
+        language: python
+        docker:
+            path: dockerfile
+            remoteBuild: true
+    admin:
+        project: src/admin
+        host: containerapp
+        language: python
+        docker:
+            path: dockerfile
+            remoteBuild: true
+hooks:
+    postprovision: 
+        shell: pwsh
+        run: |
+            pip install -r infra/scripts/requirements.txt
+            python infra/scripts/setup_cosmos.py
+            python infra/scripts/patch_app_reg.py
+        interactive: true
+        continueOnError: false

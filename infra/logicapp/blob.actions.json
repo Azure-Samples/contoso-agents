@@ -1,0 +1,104 @@
+{
+  "Send_message": {
+    "runAfter": {
+      "Parse_as_JSON": ["Succeeded"]
+    },
+    "type": "ApiConnection",
+    "inputs": {
+      "host": {
+        "connection": {
+          "name": "@parameters('$connections')['servicebus']['connectionId']"
+        }
+      },
+      "method": "post",
+      "body": {
+        "ContentData": "@base64(concat('{','\n','\"specversion\": \"1.0\",','\n','\"type\": \"com.dapr.event.sent\",','\n','\"source\": \"blob-logic-app\",','\n','\"id\": \"',guid(),'\",','\n','\"time\": \"',utcNow(),'\",','\n','\"datacontenttype\": \"application/json\",','\n','\"data\": {  \"order_id\": \"',concat('order_', formatDateTime(utcNow(), 'yyyyMMddHHmmss')),'\", \"input\": ',replace(replace(replace(body('Parse_as_JSON')['choices'][0]['message']['content'], '```json', ''), '```', ''), '\n',''),'}','\n','}'))",
+        "Properties": {
+          "type": "trigger"
+        }
+      },
+      "path": "/@{encodeURIComponent(encodeURIComponent('orders'))}/messages",
+      "queries": {
+        "systemProperties": "None"
+      }
+    }
+  },
+  "Analyze_Document": {
+    "runAfter": {
+      "Get_blob_content_(V2)": ["Succeeded"]
+    },
+    "type": "ApiConnection",
+    "inputs": {
+      "host": {
+        "connection": {
+          "name": "@parameters('$connections')['formrecognizer']['connectionId']"
+        }
+      },
+      "method": "post",
+      "body": "@body('Get_blob_content_(V2)')",
+      "path": "/connectorinternaldocumentintelligence/documentModels/@{encodeURIComponent('prebuilt-layout')}:analyze",
+      "queries": {
+        "api-version": "2024-11-30"
+      }
+    }
+  },
+  "Get_blob_content_(V2)": {
+    "runAfter": {},
+    "type": "ApiConnection",
+    "inputs": {
+      "host": {
+        "connection": {
+          "name": "@parameters('$connections')['azureblob']['connectionId']"
+        }
+      },
+      "method": "get",
+      "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('blob')))}/files/@{encodeURIComponent(encodeURIComponent(triggerBody()?['Path']))}/content",
+      "queries": {
+        "inferContentType": true
+      }
+    }
+  },
+  "Parse_as_JSON": {
+    "runAfter": {
+      "Analyze_Document": ["Succeeded"]
+    },
+    "type": "ApiConnection",
+    "inputs": {
+      "host": {
+        "connection": {
+          "name": "@parameters('$connections')['azureopenai']['connectionId']"
+        }
+      },
+      "method": "post",
+      "body": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "Your objective is to return a JSON format to describe the order requested by the customer. Use the following JSON schema definition:\n\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"customerId\": {\n      \"type\": \"string\"\n    },\n    \"customerName\": {\n      \"type\": \"string\"\n    },\n    \"order\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"sku\": {\n            \"type\": \"string\"\n          },\n          \"description\": {\n            \"type\": \"string\"\n          },\n          \"size\": {\n            \"type\": \"string\",\n            \"enum\": [\"S\", \"M\", \"L\", \"XL\"]\n          },\n          \"color\": {\n            \"type\": \"string\"\n          },\n          \"quantity\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"unit_price\": {\n            \"type\": \"number\",\n            \"minimum\": 0\n          }\n        },\n        \"required\": [\"sku\", \"description\", \"size\", \"color\", \"quantity\", \"unit_price\"]\n      }\n    }\n  },\n  \"required\": [\"customerId\", \"customerName\", \"order\"]\n}\n\n"
+          },
+          {
+            "role": "user",
+            "content": "@string(body('Analyze_Document')?['analyzeResult']?['tables'])"
+          }
+        ],
+        "temperature": 1,
+        "top_p": 1,
+        "stream": false,
+        "stop": null,
+        "max_tokens": 4096,
+        "presence_penalty": 0,
+        "frequency_penalty": 0,
+        "n": 1,
+        "seed": 0,
+        "logprobs": false,
+        "response_format": {
+          "type": "text"
+        }
+      },
+      "path": "/2024-02-15-preview/deployments/@{encodeURIComponent('gpt-4o-mini')}/chat/completions",
+      "queries": {
+        "api-version": "2025-01-01-preview"
+      }
+    }
+  }
+}
