@@ -95,7 +95,7 @@
           "type": "text"
         }
       },
-      "path": "/2024-02-15-preview/deployments/@{encodeURIComponent('gpt-4o-mini')}/chat/completions",
+      "path": "/2024-02-15-preview/deployments/@{encodeURIComponent(parameters('openAIModel'))}/chat/completions",
       "queries": {
         "api-version": "2025-01-01-preview"
       }

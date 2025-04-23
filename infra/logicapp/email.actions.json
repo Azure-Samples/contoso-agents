@@ -1,8 +1,9 @@
 {
   "For_each": {
+    "type": "Foreach",
     "foreach": "@triggerBody()?['Attachments']",
     "actions": {
-      "Analyze_Document_for_Prebuilt_or_Custom_models_(v4.x_API)": {
+      "Analyze_Document": {
         "type": "ApiConnection",
         "inputs": {
           "host": {
@@ -18,12 +19,7 @@
           }
         }
       },
-      "Creates_a_completion_for_the_chat_message": {
-        "runAfter": {
-          "Analyze_Document_for_Prebuilt_or_Custom_models_(v4.x_API)": [
-            "Succeeded"
-          ]
-        },
+      "Parse_as_JSON": {
         "type": "ApiConnection",
         "inputs": {
           "host": {
@@ -40,7 +36,7 @@
               },
               {
                 "role": "user",
-                "content": "@string(body('Analyze_Document_for_Prebuilt_or_Custom_models_(v4.x_API)')?['analyzeResult']?['tables'])"
+                "content": "@string(body('Analyze_Document')?['analyzeResult']?['tables'])"
               }
             ],
             "temperature": 1,
@@ -57,10 +53,13 @@
               "type": "text"
             }
           },
-          "path": "/2024-02-15-preview/deployments/@{encodeURIComponent('gpt-4o')}/chat/completions",
+          "path": "/2024-02-15-preview/deployments/@{encodeURIComponent(parameters('openAIModel'))}/chat/completions",
           "queries": {
             "api-version": "2025-01-01-preview"
           }
+        },
+        "runAfter": {
+          "Analyze_Document": ["Succeeded"]
         }
       },
       "Send_message": {
@@ -73,9 +72,9 @@
           },
           "method": "post",
           "body": {
-            "ContentData": "@base64(concat('{\n  \"specversion\": \"1.0\",\n  \"type\": \"com.dapr.event.sent\",\n  \"source\": \"approval-logic-app\",\n  \"id\": \"',guid(),'\",\n  \"time\": \"',utcNow(),'\",\n  \"datacontenttype\": \"application/json\",\n  \"data\": ',body('Creates_a_completion_for_the_chat_message')['object'],'\n}\n'))",
+            "ContentData": "@base64(concat('{\n\"specversion\": \"1.0\",\n\"type\": \"com.dapr.event.sent\",\n\"source\": \"blob-logic-app\",\n\"id\": \"',guid(),'\",\n\"time\": \"',utcNow(),'\",\n\"datacontenttype\": \"application/json\",\n\"data\": {  \"order_id\": \"',concat('order_', formatDateTime(utcNow(), 'yyyyMMddHHmmss')),'\", \"input\": ',replace(replace(replace(body('Parse_as_JSON')['choices'][0]['message']['content'], '```json', ''), '```', ''), '\n',''),'}\n}'))",
             "Properties": {
-              "order_id": "@concat('order_', utcNow())"
+              "type": "trigger"
             }
           },
           "path": "/@{encodeURIComponent(encodeURIComponent('orders'))}/messages",
@@ -84,11 +83,10 @@
           }
         },
         "runAfter": {
-          "Creates_a_completion_for_the_chat_message": ["SUCCEEDED"]
+          "Parse_as_JSON": ["Succeeded"]
         }
       }
     },
-    "runAfter": {},
-    "type": "Foreach"
+    "runAfter": {}
   }
 }

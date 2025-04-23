@@ -2,11 +2,10 @@ import logging
 
 from teams import Application, ApplicationOptions
 from teams.state import TurnState
-from botbuilder.core import MemoryStorage, TurnContext, MessageFactory, CardFactory
+from botbuilder.core import MemoryStorage, TurnContext
 from botframework.connector.auth import AuthenticationConfiguration
 from botbuilder.integration.aiohttp import ConfigurationBotFrameworkAuthentication
 from botbuilder.schema import (
-    InputHints,
     Activity,
     ActivityTypes,
     EndOfConversationCodes
@@ -20,6 +19,7 @@ from adapter import AdapterWithErrorHandler
 from config import config
 import re
 from botbuilder.core.re_escape import escape
+from adaptive_card import create_adaptive_card_from_content
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -109,23 +109,9 @@ async def on_message(context: TurnContext, state: TurnState):
         # before sending it as a response
         chat_message = ChatMessageContent.model_validate(msg)
         logger.info("Sending message: %s", chat_message.content)
-        await context.send_activity(
-            MessageFactory.attachment(CardFactory.adaptive_card(
-                {
-                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                    "type": "AdaptiveCard",
-                    "version": "1.3",
-                    "body": [
-                            {
-                                "type": "TextBlock",
-                                "text": chat_message.content,
-                                "wrap": True
-                            }
-                    ]
-                }),
-                input_hint=InputHints.accepting_input,
-            )
-        )
+        # Use the new function to create an adaptive card that handles tables
+        card_activity = create_adaptive_card_from_content(chat_message)
+        await context.send_activity(card_activity)
 
     if context.activity.channel_id != "msteams":
         # Skills must send an EndOfConversation activity to indicate the conversation is complete

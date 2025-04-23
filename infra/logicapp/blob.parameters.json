@@ -6,5 +6,9 @@
   "blob": {
     "type": "String",
     "defaultValue": ""
+  },
+  "openAIModel": {
+    "type": "String",
+    "defaultValue": "gpt-4.1-mini"
   }
 }

@@ -2,5 +2,9 @@
   "$connections": {
     "type": "Object",
     "defaultValue": {}
+  },
+  "openAIModel": {
+    "type": "String",
+    "defaultValue": "gpt-4.1-mini"
   }
 }
