@@ -250,10 +250,11 @@ resource agentsContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
             { name: 'COSMOSDB_ENDPOINT', value: cosmosDbEndpoint }
             { name: 'COSMOSDB_DATABASE', value: cosmosDbDatabaseName }
             { name: 'COSMOSDB_DATA_CONTAINER', value: dataContainerName }
+            { name: 'COSMOSDB_STATE_CONTAINER', value: stateContainerName }
             { name: 'BOT_APP_ID', value: botAppId }
             { name: 'BOT_PASSWORD', value: botPassword }
             { name: 'BOT_TENANT_ID', value: botTenantId }
-            { name: 'NOTIFY_USER_IDS', value: '558e61f5-bfbc-4836-b945-78563b508dcc,89ce8d6b-cfac-4b48-8a37-0cea87c5bb8c,7e720380-2366-499e-aea3-f98537fbe1c,00a54c92-6c33-42f0-9fae-6858286375d4' }
+            { name: 'NOTIFY_USER_IDS', value: '' }
           ]
         }
       ]

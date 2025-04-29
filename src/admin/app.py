@@ -37,7 +37,26 @@ def list_order_actors():
     return actor_list
 
 
-actor_list = list_order_actors()
+def list_users_actors():
+    result = container_client.query_items(
+        query="SELECT c.id FROM c WHERE CONTAINS(c.id, 'agents||UserActor||')",
+        # NOTE not super efficient, but we need to get all actors in the container
+        enable_cross_partition_query=True,
+    )
+
+    actor_list = []
+    # NOTE we need to extract the user_id from the actor id
+    # since the actor id is in the format "agents||UserActor||user_id"
+    # displayName is not stored in this case
+    for item in result:
+        user_id = item["id"].split("||")[2]
+        actor_list.append({"id": user_id, "displayName": user_id})
+
+    return actor_list
+
+
+order_list = list_order_actors()
+user_list = list_users_actors()
 
 
 async def main():
@@ -52,12 +71,8 @@ async def main():
     st.sidebar.header("⚒️ Tools")
     st.sidebar.write("## Notification Test")
     # Define a list of default users
-    default_users = [
-        {"id": "558e61f5-bfbc-4836-b945-78563b508dcc", "displayName": "Riccardo Chiodaroli"},
-        {"id": "89ce8d6b-cfac-4b48-8a37-0cea87c5bb8c", "displayName": "Fabrizio Ruocco"},
-        {"id": "7e720380-2366-499e-aea3-f98537fbe1c2", "displayName": "Samer El Housseini"},
-        {"id": "00a54c92-6c33-42f0-9fae-6858286375d4", "displayName": "Daniel Labbe"},
-    ]
+    default_users = list_users_actors()
+
     selected_user = st.sidebar.selectbox(
         "Select a User",
         default_users,
@@ -75,7 +90,7 @@ async def main():
     # Main content
     st.write("## 🔍 Debug Order Process History")
     order_id = st.selectbox(
-        "Select Order", actor_list, format_func=lambda x: x.split("||")[2]
+        "Select Order", order_list, format_func=lambda x: x.split("||")[2]
     )
 
     if order_id is not None:

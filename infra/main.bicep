@@ -22,9 +22,9 @@ param openAIName string
 @description('Name of the Azure Resource Group where the OpenAI resource is located')
 param openAIResourceGroupName string
 
-param openAIModel string = 'gpt-4.1-mini'
-param openAiPlanningModel string = 'o4-mini'
-param openAIApiVersion string = '2024-12-01-preview'
+param openAIModel string
+param openAiPlanningModel string
+param openAIApiVersion string
 
 
 @description('Azure Bot app ID')
@@ -156,6 +156,7 @@ module logicapp './logicapp.bicep' = {
     serviceBusName: servicebus.outputs.name
     azureOpenAIName: openAIName
     azureOpenAIKey: openAI.outputs.openAIKey
+    azureOpenAIModel: openAIModel
     formRecognizerEndpoint: fr.outputs.formRecognizerEndpoint
     formRecognizerKey: fr.outputs.formRecognizerKey
     blobStorageName: storageaccount.outputs.name

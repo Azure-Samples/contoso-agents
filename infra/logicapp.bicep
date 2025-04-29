@@ -8,6 +8,7 @@ param formRecognizerEndpoint string
 param formRecognizerKey string
 param azureOpenAIName string
 param azureOpenAIKey string
+param azureOpenAIModel string
 param blobStorageName string
 
 
@@ -106,6 +107,9 @@ module emailLogicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
     workflowTriggers: loadJsonContent('logicapp/email.triggers.json')
     workflowParameters: loadJsonContent('logicapp/email.parameters.json')
     definitionParameters: {
+      openAIModel: {
+        value: azureOpenAIModel
+      }
       '$connections': {
         value: {
           servicebus: {
@@ -163,6 +167,9 @@ module blobLogicApp 'br/public:avm/res/logic/workflow:0.4.0' = {
     definitionParameters: {
       blob: {
         value: blobStorageName
+      }
+      openAIModel: {
+        value: azureOpenAIModel
       }
       '$connections': {
         value: {

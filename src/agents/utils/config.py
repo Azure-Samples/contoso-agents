@@ -26,10 +26,11 @@ class Config:
     COSMOSDB_ENDPOINT = os.getenv("COSMOSDB_ENDPOINT")
     COSMOSDB_DATABASE = os.getenv("COSMOSDB_DATABASE")
     COSMOSDB_DATA_CONTAINER = os.getenv("COSMOSDB_DATA_CONTAINER")
+    COSMOSDB_STATE_CONTAINER = os.getenv("COSMOSDB_STATE_CONTAINER")
 
     PLANNING_MODEL = os.environ.get("AZURE_OPENAI_PLANNING_DEPLOYMENT_NAME", "o4-mini")
 
-    NOTIFY_USER_IDS = os.getenv("NOTIFY_USER_IDS", "").split(",")
+    NOTIFY_USER_IDS = [uid for uid in os.getenv("NOTIFY_USER_IDS", "").split(",") if uid]
 
     def validate(self):
         # Validate the configuration

@@ -169,6 +169,35 @@ class LocalDataStore(DataStore):
             file.write(json.dumps(existing_data))
 
 
+class DaprActorStore():
+    def __init__(self):
+        self.client = CosmosClient(
+            url=config.COSMOSDB_ENDPOINT,
+            credential=DefaultAzureCredential(),
+        )
+        self.database = self.client.get_database_client(config.COSMOSDB_DATABASE)
+        self.container = self.database.get_container_client(
+            config.COSMOSDB_STATE_CONTAINER
+        )
+
+    def list_actors(self, actor_type: str) -> list[str]:
+        result = self.container.query_items(
+            query=f"SELECT c.id FROM c WHERE CONTAINS(c.id, 'agents||{actor_type}||')",
+            # NOTE not super efficient, but we need to get all actors in the container
+            enable_cross_partition_query=True,
+        )
+
+        actor_list = []
+        # NOTE we need to extract the user_id from the actor id
+        # since the actor id is in the format "agents||UserActor||user_id"
+        # displayName is not stored in this case
+        for item in result:
+            actor_id = item["id"].split("||")[2]
+            actor_list.append(actor_id)
+
+        return list(dict.fromkeys(actor_list))
+
+
 def get_data_store() -> DataStore:
     # This function can be modified to return different data store implementations
     # based on the environment or configuration.
