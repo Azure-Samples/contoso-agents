@@ -380,3 +380,4 @@ resource adminContainerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
 }
 
 output skillEndpoint string = 'https://${skillContainerApp.properties.configuration.ingress.fqdn}/api/messages' 
+output teamsManifestUrl string = 'https://${skillContainerApp.properties.configuration.ingress.fqdn}/teams/manifest'

@@ -221,6 +221,7 @@ output AZURE_OPENAI_CHAT_DEPLOYMENT_NAME string = openAIModel
 output AZURE_OPENAI_ENDPOINT string = openAI.outputs.openAIEndpoint
 output AZURE_OPENAI_API_VERSION string = openAIApiVersion
 output SKILL_ENDPOINT string = aca.outputs.skillEndpoint
+output TEAMS_MANIFEST_URL string = aca.outputs.teamsManifestUrl
 output BOT_APP_ID string = botAppId
 output COSMOSDB_ENDPOINT string = cosmos.outputs.cosmosDbEndpoint
 output COSMOSDB_DATABASE string = cosmos.outputs.cosmosDbDatabase
